@@ -1,0 +1,11 @@
+## Interface: 11304
+## Title: InstanceTrack
+## Version: 1.0
+## Author: abourrier
+## DefaultState: enabled
+## SavedVariables: InstanceTrackDB
+
+embeds.xml
+InstanceTrack_Core.lua
+InstanceTrack_UI.lua
+InstanceTrack_Logic.lua
