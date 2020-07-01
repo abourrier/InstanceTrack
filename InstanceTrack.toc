@@ -1,6 +1,6 @@
 ## Interface: 11304
 ## Title: InstanceTrack
-## Version: 1.0
+## Version: 1.1
 ## Author: abourrier
 ## DefaultState: enabled
 ## SavedVariables: InstanceTrackDB
