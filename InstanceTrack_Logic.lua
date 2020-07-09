@@ -1,7 +1,7 @@
 local InstanceTrack = LibStub("AceAddon-3.0"):GetAddon("InstanceTrack")
 
 InstanceTrack.defaults = {
-    realm = {
+    char = {
         framePoint = { point = "CENTER", relativePoint = "CENTER", xOfs = 0, yOfs = 0 },
         isDisplayed = true,
         hourDetailsShown = false,
@@ -16,7 +16,7 @@ function InstanceTrack:ChatCommand(input)
     elseif input == "hide" then
         self:Hide()
     elseif input == "reset" then
-        self.db.realm.framePoint = self.defaults.realm.framePoint
+        self.db.char.framePoint = self.defaults.char.framePoint
         self:Print("Reload to reset position.")
     else
         self:Print("Available commands: 'show', 'hide' and 'reset'.")
@@ -26,15 +26,15 @@ end
 function InstanceTrack:CreateDB()
     self.db = LibStub("AceDB-3.0"):New("InstanceTrackDB", self.defaults)
 
-    for key, _ in pairs(self.db.realm) do
-        if self.defaults.realm[key] == nil then
+    for key, _ in pairs(self.db.char) do
+        if self.defaults.char[key] == nil then
             self.db[key] = nil
         end
     end
 
-    for key, value in pairs(self.defaults.realm) do
-        if self.db.realm[key] == nil then
-            self.db.realm[key] = value
+    for key, value in pairs(self.defaults.char) do
+        if self.db.char[key] == nil then
+            self.db.char[key] = value
         end
     end
 end
@@ -47,19 +47,19 @@ end
 function InstanceTrack:Display()
     self.displayTimer = self:ScheduleRepeatingTimer("DisplayState", 1)
     self.titleFrame:Show()
-    self.db.realm.isDisplayed = true
+    self.db.char.isDisplayed = true
 end
 
 function InstanceTrack:Hide()
     self.titleFrame:Hide()
-    self.db.realm.isDisplayed = false
+    self.db.char.isDisplayed = false
     self:CancelTimer(self.displayTimer)
 end
 
 function InstanceTrack:InsertCurrentInstanceInHistory(currentInstance)
     local instanceFound = false
     self.state.isInTrackedInstance = true
-    for _, instance in ipairs(self.db.realm.instanceHistory) do
+    for _, instance in ipairs(self.db.char.instanceHistory) do
         if instance.zoneUID == currentInstance.zoneUID and instance.zoneText == currentInstance.zoneText then
             instanceFound = true
             instance.timestamp = time()
@@ -67,9 +67,9 @@ function InstanceTrack:InsertCurrentInstanceInHistory(currentInstance)
         end
     end
     if not instanceFound then
-        table.insert(self.db.realm.instanceHistory, { timestamp = time(), zoneUID = currentInstance.zoneUID, zoneText = currentInstance.zoneText })
+        table.insert(self.db.char.instanceHistory, { timestamp = time(), zoneUID = currentInstance.zoneUID, zoneText = currentInstance.zoneText })
     end
-    table.sort(self.db.realm.instanceHistory, function(a, b)
+    table.sort(self.db.char.instanceHistory, function(a, b)
         return a.timestamp < b.timestamp
     end)
     self.currentInstanceTimestampTimer = self:ScheduleRepeatingTimer("SetCurrentInstanceTime", 1)
@@ -77,16 +77,16 @@ function InstanceTrack:InsertCurrentInstanceInHistory(currentInstance)
 end
 
 function InstanceTrack:SetCurrentInstanceTime()
-    local history = self.db.realm.instanceHistory
+    local history = self.db.char.instanceHistory
     history[table.getn(history)].timestamp = time()
 end
 
 function InstanceTrack:IsDisplayed()
-    return self.db.realm.isDisplayed
+    return self.db.char.isDisplayed
 end
 
 function InstanceTrack:UpdateState()
-    local history = self.db.realm.instanceHistory
+    local history = self.db.char.instanceHistory
 
     -- delete old instances --
     while next(history) ~= nil and time() - history[1].timestamp > 86400 do

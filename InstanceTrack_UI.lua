@@ -40,7 +40,7 @@ function InstanceTrack:CreateFrames()
     local titleFrame = CreateFrame("Frame", nil, UIParent)
     self.titleFrame = titleFrame
     titleFrame:SetHeight(2 * padding + titleFontHeight)
-    local dbPoint = self.db.realm.framePoint
+    local dbPoint = self.db.char.framePoint
     titleFrame:SetPoint(dbPoint.point, UIParent, dbPoint.relativePoint, dbPoint.xOfs, dbPoint.yOfs)
     titleFrame:SetBackdrop({ bgFile = "Interface/DialogFrame/UI-DialogBox-Background-Dark" })
 
@@ -56,7 +56,7 @@ function InstanceTrack:CreateFrames()
     titleFrame:SetScript("OnDragStop", function()
         titleFrame:StopMovingOrSizing()
         local point, _, relativePoint, xOfs, yOfs = titleFrame:GetPoint()
-        self.db.realm.framePoint = { point = point, relativePoint = relativePoint, xOfs = xOfs, yOfs = yOfs }
+        self.db.char.framePoint = { point = point, relativePoint = relativePoint, xOfs = xOfs, yOfs = yOfs }
     end)
 
     -- summary frame --
@@ -104,17 +104,17 @@ function InstanceTrack:CreateFrames()
     local hourDetailsCheckbox = CreateFrame("CheckButton", nil, summaryFrame, "ChatConfigCheckButtonTemplate")
     local yOfsCorrection = (hourDetailsCheckbox:GetHeight() - fontHeight) / 2
     hourDetailsCheckbox:SetPoint("TOPLEFT", summaryFrame, "TOPLEFT", xOfs[4], yOfs[2] + yOfsCorrection)
-    hourDetailsCheckbox:SetChecked(self.db.realm.hourDetailsShown)
+    hourDetailsCheckbox:SetChecked(self.db.char.hourDetailsShown)
     local dayDetailsCheckbox = CreateFrame("CheckButton", nil, summaryFrame, "ChatConfigCheckButtonTemplate")
     dayDetailsCheckbox:SetPoint("TOPLEFT", summaryFrame, "TOPLEFT", xOfs[4], yOfs[3] + yOfsCorrection)
-    dayDetailsCheckbox:SetChecked(self.db.realm.dayDetailsShown)
+    dayDetailsCheckbox:SetChecked(self.db.char.dayDetailsShown)
 
     -- details frame --
     local detailsFrame = CreateFrame("Frame", nil, titleFrame)
     self.detailsFrame = detailsFrame
     detailsFrame:SetPoint("TOP", summaryFrame, "BOTTOM")
     detailsFrame:SetBackdrop({ bgFile = "Interface/DialogFrame/UI-DialogBox-Background" })
-    if self.db.realm.hourDetailsShown or self.db.realm.dayDetailsShown then
+    if self.db.char.hourDetailsShown or self.db.char.dayDetailsShown then
         detailsFrame:Show()
     else
         detailsFrame:Hide()
@@ -132,10 +132,10 @@ function InstanceTrack:CreateFrames()
 
     hourDetailsCheckbox:SetScript("OnClick", function()
         dayDetailsCheckbox:SetChecked(false)
-        self.db.realm.hourDetailsShown = hourDetailsCheckbox:GetChecked()
-        self.db.realm.dayDetailsShown = false
+        self.db.char.hourDetailsShown = hourDetailsCheckbox:GetChecked()
+        self.db.char.dayDetailsShown = false
         self:DisplayDetails()
-        if self.db.realm.hourDetailsShown then
+        if self.db.char.hourDetailsShown then
             detailsFrame:Show()
         else
             detailsFrame:Hide()
@@ -144,10 +144,10 @@ function InstanceTrack:CreateFrames()
 
     dayDetailsCheckbox:SetScript("OnClick", function()
         hourDetailsCheckbox:SetChecked(false)
-        self.db.realm.hourDetailsShown = false
-        self.db.realm.dayDetailsShown = dayDetailsCheckbox:GetChecked()
+        self.db.char.hourDetailsShown = false
+        self.db.char.dayDetailsShown = dayDetailsCheckbox:GetChecked()
         self:DisplayDetails()
-        if self.db.realm.dayDetailsShown then
+        if self.db.char.dayDetailsShown then
             detailsFrame:Show()
         else
             detailsFrame:Hide()
@@ -155,14 +155,14 @@ function InstanceTrack:CreateFrames()
     end)
 
     function self:DisplayDetails()
-        local iRow, start, stop, resetDuration = 0, 1, table.getn(self.db.realm.instanceHistory), 86400
-        if self.db.realm.hourDetailsShown then
+        local iRow, start, stop, resetDuration = 0, 1, table.getn(self.db.char.instanceHistory), 86400
+        if self.db.char.hourDetailsShown then
             start = stop - self.state.nbHourInstances + 1
             resetDuration = 3600
         end
         for i = start, stop do
             iRow = iRow + 1
-            local instance = self.db.realm.instanceHistory[i]
+            local instance = self.db.char.instanceHistory[i]
             if iRow > table.getn(self.detailsFrame.rows) then
                 local row = self:CreateFontString(self.detailsFrame, font, fontHeight)
                 row:SetPoint("TOPLEFT", self.detailsFrame, "TOPLEFT", padding, -padding * iRow - fontHeight * (iRow - 1))
@@ -171,8 +171,8 @@ function InstanceTrack:CreateFrames()
             self.detailsFrame.rows[iRow]:SetText(iRow .. ". " .. instance.zoneText .. " " .. self:TimerToText(instance.timestamp + resetDuration - time()))
         end
         if self.state.isInTrackedInstance then
-            local instance, timerText = self.db.realm.instanceHistory[table.getn(self.db.realm.instanceHistory)], "01:00:00"
-            if self.db.realm.dayDetailsShown then
+            local instance, timerText = self.db.char.instanceHistory[table.getn(self.db.char.instanceHistory)], "01:00:00"
+            if self.db.char.dayDetailsShown then
                 timerText = "24:00:00"
             end
             self.detailsFrame.rows[iRow]:SetText(iRow .. ". " .. instance.zoneText .. " " .. timerText)
@@ -224,7 +224,7 @@ function InstanceTrack:DisplayState()
         self.dayNext:SetText("")
     end
 
-    if self.db.realm.dayDetailsShown or self.db.realm.hourDetailsShown then
+    if self.db.char.dayDetailsShown or self.db.char.hourDetailsShown then
         self:DisplayDetails()
     end
 end
