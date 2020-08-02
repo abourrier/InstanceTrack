@@ -27,7 +27,7 @@ function InstanceTrack:TimerToText(timer)
     end
 end
 
-function InstanceTrack:CreateFontString(parent, font, fontHeight)
+function InstanceTrack:CreateFontString(parent)
     local fontString = parent:CreateFontString()
     fontString:SetFont(font, fontHeight)
     fontString:SetJustifyH("LEFT")
@@ -44,7 +44,7 @@ function InstanceTrack:CreateFrames()
     titleFrame:SetPoint(dbPoint.point, UIParent, dbPoint.relativePoint, dbPoint.xOfs, dbPoint.yOfs)
     titleFrame:SetBackdrop({ bgFile = "Interface/DialogFrame/UI-DialogBox-Background-Dark" })
 
-    local title = self:CreateFontString(titleFrame, font, titleFontHeight)
+    local title = self:CreateFontString(titleFrame)
     title:SetPoint("TOPLEFT", titleFrame, "TOPLEFT", padding, -padding)
     title:SetText("InstanceTrack")
 
@@ -73,31 +73,31 @@ function InstanceTrack:CreateFrames()
         yOfs[i] = yOfs[i - 1] - (fontHeight + padding)
     end
     for i, text in ipairs(summaryTitleTexts) do
-        local fontString = self:CreateFontString(summaryFrame, font, fontHeight)
+        local fontString = self:CreateFontString(summaryFrame)
         fontString:SetPoint("TOPLEFT", summaryFrame, "TOPLEFT", xOfs[i], yOfs[1])
         fontString:SetText(text)
         xOfs[i + 1] = xOfs[i] + fontString:GetWidth() + padding
         summaryFrame.titleRow[i] = fontString
     end
 
-    local hourText = self:CreateFontString(summaryFrame, font, fontHeight)
+    local hourText = self:CreateFontString(summaryFrame)
     hourText:SetText("1h")
     hourText:SetPoint("TOPLEFT", summaryFrame, "TOPLEFT", xOfs[1], yOfs[2])
-    local dayText = self:CreateFontString(summaryFrame, font, fontHeight)
+    local dayText = self:CreateFontString(summaryFrame)
     dayText:SetText("24h")
     dayText:SetPoint("TOPLEFT", summaryFrame, "TOPLEFT", xOfs[1], yOfs[3])
 
-    local hourInstances = self:CreateFontString(summaryFrame, font, fontHeight)
+    local hourInstances = self:CreateFontString(summaryFrame)
     self.hourInstances = hourInstances
     hourInstances:SetPoint("TOPLEFT", summaryFrame, "TOPLEFT", xOfs[2], yOfs[2])
-    local dayInstances = self:CreateFontString(summaryFrame, font, fontHeight)
+    local dayInstances = self:CreateFontString(summaryFrame)
     self.dayInstances = dayInstances
     dayInstances:SetPoint("TOPLEFT", summaryFrame, "TOPLEFT", xOfs[2], yOfs[3])
 
-    local hourNext = self:CreateFontString(summaryFrame, font, fontHeight)
+    local hourNext = self:CreateFontString(summaryFrame)
     self.hourNext = hourNext
     hourNext:SetPoint("TOPLEFT", summaryFrame, "TOPLEFT", xOfs[3], yOfs[2])
-    local dayNext = self:CreateFontString(summaryFrame, font, fontHeight)
+    local dayNext = self:CreateFontString(summaryFrame)
     self.dayNext = dayNext
     dayNext:SetPoint("TOPLEFT", summaryFrame, "TOPLEFT", xOfs[3], yOfs[3])
 
@@ -210,7 +210,7 @@ function InstanceTrack:DisplayDetails()
         iRow = iRow + 1
         local instance = self.db.char.instanceHistory[i]
         if iRow > table.getn(self.detailsFrame.rows) then
-            local row = self:CreateFontString(self.detailsFrame, font, fontHeight)
+            local row = self:CreateFontString(self.detailsFrame)
             row:SetPoint("TOPLEFT", self.detailsFrame, "TOPLEFT", padding, -padding * iRow - fontHeight * (iRow - 1))
             self.detailsFrame.rows[iRow] = row
         end
