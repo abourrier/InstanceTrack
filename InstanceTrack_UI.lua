@@ -1,20 +1,19 @@
 local InstanceTrack = LibStub("AceAddon-3.0"):GetAddon("InstanceTrack")
 
-function InstanceTrack:TimerToText(timer)
-    local remainder = timer
-    local seconds = remainder % 60
-    remainder = remainder - seconds
-    local minutes = (remainder / 60) % 60
-    remainder = remainder - 60 * minutes
-    local hours = remainder / 3600
-
-    local function format(number)
-        if number < 10 then
-            return "0" .. number
-        else
-            return number
-        end
+local function format(number)
+    if number < 10 then
+        return "0" .. number
+    else
+        return number
     end
+end
+
+function InstanceTrack:TimerToText(timer)
+    local seconds = timer % 60
+    timer = timer - seconds
+    local minutes = (timer / 60) % 60
+    timer = timer - 60 * minutes
+    local hours = timer / 3600
 
     if hours > 0 then
         return format(hours) .. ":" .. format(minutes) .. ":" .. format(seconds)
