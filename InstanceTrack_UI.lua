@@ -1,5 +1,8 @@
 local InstanceTrack = LibStub("AceAddon-3.0"):GetAddon("InstanceTrack")
 
+local nbSummaryLines, padding, fontHeight, titleFontHeight = 3, 6, 10, 11
+local font = "Fonts/FRIZQT__.TTF"
+
 local function format(number)
     if number < 10 then
         return "0" .. number
@@ -32,8 +35,6 @@ function InstanceTrack:CreateFontString(parent, font, fontHeight)
 end
 
 function InstanceTrack:CreateFrames()
-    local nbSummaryLines, padding, fontHeight, titleFontHeight = 3, 6, 10, 11
-    local font = "Fonts/FRIZQT__.TTF"
 
     -- title frame --
     local titleFrame = CreateFrame("Frame", nil, UIParent)
@@ -153,35 +154,6 @@ function InstanceTrack:CreateFrames()
         end
     end)
 
-    function self:DisplayDetails()
-        local iRow, start, stop, resetDuration = 0, 1, table.getn(self.db.char.instanceHistory), 86400
-        if self.db.char.hourDetailsShown then
-            start = stop - self.state.nbHourInstances + 1
-            resetDuration = 3600
-        end
-        for i = start, stop do
-            iRow = iRow + 1
-            local instance = self.db.char.instanceHistory[i]
-            if iRow > table.getn(self.detailsFrame.rows) then
-                local row = self:CreateFontString(self.detailsFrame, font, fontHeight)
-                row:SetPoint("TOPLEFT", self.detailsFrame, "TOPLEFT", padding, -padding * iRow - fontHeight * (iRow - 1))
-                self.detailsFrame.rows[iRow] = row
-            end
-            self.detailsFrame.rows[iRow]:SetText(iRow .. ". " .. instance.zoneText .. " " .. self:TimerToText(instance.timestamp + resetDuration - time()))
-        end
-        if self.state.isInTrackedInstance then
-            local instance, timerText = self.db.char.instanceHistory[table.getn(self.db.char.instanceHistory)], "01:00:00"
-            if self.db.char.dayDetailsShown then
-                timerText = "24:00:00"
-            end
-            self.detailsFrame.rows[iRow]:SetText(iRow .. ". " .. instance.zoneText .. " " .. timerText)
-        end
-        for i = iRow + 1, table.getn(self.detailsFrame.rows) do
-            self.detailsFrame.rows[i]:SetText("")
-        end
-        self.detailsFrame:SetHeight(iRow * fontHeight + (iRow + 1) * padding)
-    end
-
 end
 
 function InstanceTrack:DisplayState()
@@ -226,4 +198,33 @@ function InstanceTrack:DisplayState()
     if self.db.char.dayDetailsShown or self.db.char.hourDetailsShown then
         self:DisplayDetails()
     end
+end
+
+function InstanceTrack:DisplayDetails()
+    local iRow, start, stop, resetDuration = 0, 1, table.getn(self.db.char.instanceHistory), 86400
+    if self.db.char.hourDetailsShown then
+        start = stop - self.state.nbHourInstances + 1
+        resetDuration = 3600
+    end
+    for i = start, stop do
+        iRow = iRow + 1
+        local instance = self.db.char.instanceHistory[i]
+        if iRow > table.getn(self.detailsFrame.rows) then
+            local row = self:CreateFontString(self.detailsFrame, font, fontHeight)
+            row:SetPoint("TOPLEFT", self.detailsFrame, "TOPLEFT", padding, -padding * iRow - fontHeight * (iRow - 1))
+            self.detailsFrame.rows[iRow] = row
+        end
+        self.detailsFrame.rows[iRow]:SetText(iRow .. ". " .. instance.zoneText .. " " .. self:TimerToText(instance.timestamp + resetDuration - time()))
+    end
+    if self.state.isInTrackedInstance then
+        local instance, timerText = self.db.char.instanceHistory[table.getn(self.db.char.instanceHistory)], "01:00:00"
+        if self.db.char.dayDetailsShown then
+            timerText = "24:00:00"
+        end
+        self.detailsFrame.rows[iRow]:SetText(iRow .. ". " .. instance.zoneText .. " " .. timerText)
+    end
+    for i = iRow + 1, table.getn(self.detailsFrame.rows) do
+        self.detailsFrame.rows[i]:SetText("")
+    end
+    self.detailsFrame:SetHeight(iRow * fontHeight + (iRow + 1) * padding)
 end
