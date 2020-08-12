@@ -375,23 +375,27 @@ end
 -- Chat --
 ----------
 
-do
-    function IT:Print(message)
-        print('|cFF00A0FFInstanceTrack: |r' .. message)
-    end
+function IT:Print(message)
+    print('|cFF00A0FFInstanceTrack: |r' .. message)
+end
 
+function IT:SlashCommand(input)
+    if input == 'show' then
+        self:Display()
+    elseif input == 'hide' then
+        self:Hide()
+    elseif input == 'reset' then
+        self.db.char.framePoint = self.defaults.char.framePoint
+        self.db.char.isDisplayed = true
+        self:Print('Reload to reset position.')
+    else
+        self:Print('Available commands: \'show\', \'hide\' and \'reset\'.')
+    end
+end
+
+do
     local function SlashCommand(input)
-        if input == 'show' then
-            IT:Display()
-        elseif input == 'hide' then
-            IT:Hide()
-        elseif input == 'reset' then
-            IT.db.char.framePoint = IT.defaults.char.framePoint
-            IT.db.char.isDisplayed = true
-            IT:Print('Reload to reset position.')
-        else
-            IT:Print('Available commands: \'show\', \'hide\' and \'reset\'.')
-        end
+        IT:SlashCommand(input)
     end
 
     SLASH_INSTANCETRACK1 = '/itrack'
