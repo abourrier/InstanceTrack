@@ -1,10 +1,8 @@
-local InstanceTrack = LibStub('AceAddon-3.0'):NewAddon('InstanceTrack', 'AceConsole-3.0', 'AceEvent-3.0', 'AceTimer-3.0')
+local InstanceTrack = LibStub('AceAddon-3.0'):NewAddon('InstanceTrack', 'AceEvent-3.0', 'AceTimer-3.0')
 
 function InstanceTrack:OnInitialize()
     self:CreateDB()
     self:CreateState()
-    self:RegisterChatCommand('itrack', 'ChatCommand')
-    self:RegisterChatCommand('instancetrack', 'ChatCommand')
     self:RegisterEvent('PLAYER_ENTERING_WORLD')
 end
 
@@ -377,15 +375,25 @@ end
 -- Chat --
 ----------
 
-function InstanceTrack:ChatCommand(input)
-    if input == 'show' then
-        self:Display()
-    elseif input == 'hide' then
-        self:Hide()
-    elseif input == 'reset' then
-        self.db.char.framePoint = self.defaults.char.framePoint
-        self:Print('Reload to reset position.')
-    else
-        self:Print('Available commands: \'show\', \'hide\' and \'reset\'.')
+do
+    function InstanceTrack:Print(message)
+        print('|cFF00A0FFInstanceTrack: |r' .. message)
     end
+
+    local function SlashCommand(input)
+        if input == 'show' then
+            InstanceTrack:Display()
+        elseif input == 'hide' then
+            InstanceTrack:Hide()
+        elseif input == 'reset' then
+            InstanceTrack.db.char.framePoint = InstanceTrack.defaults.char.framePoint
+            InstanceTrack:Print('Reload to reset position.')
+        else
+            InstanceTrack:Print('Available commands: \'show\', \'hide\' and \'reset\'.')
+        end
+    end
+
+    SLASH_INSTANCETRACK1 = '/itrack'
+    SLASH_INSTANCETRACK2 = '/instancetrack'
+    SlashCmdList['INSTANCETRACK'] = SlashCommand
 end
