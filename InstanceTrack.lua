@@ -1,7 +1,8 @@
 local IT = LibStub('AceAddon-3.0'):NewAddon('InstanceTrack', 'AceEvent-3.0', 'AceTimer-3.0')
+IT.version = '2.1'
 
 function IT:OnInitialize()
-    self:CreateDB()
+    self:InitDatabase()
     self:CreateState()
     self:RegisterEvent('PLAYER_ENTERING_WORLD')
 end
@@ -15,32 +16,6 @@ function IT:OnEnable()
     end
 end
 
-IT.defaults = {
-    char = {
-        framePoint = { point = 'CENTER', relativePoint = 'CENTER', xOfs = 0, yOfs = 0 },
-        isDisplayed = true,
-        hourDetailsShown = false,
-        dayDetailsShown = false,
-        instanceHistory = {}
-    }
-}
-
-function IT:CreateDB()
-    self.db = LibStub('AceDB-3.0'):New('InstanceTrackDB', self.defaults)
-
-    for key, _ in pairs(self.db.char) do
-        if self.defaults.char[key] == nil then
-            self.db[key] = nil
-        end
-    end
-
-    for key, value in pairs(self.defaults.char) do
-        if self.db.char[key] == nil then
-            self.db.char[key] = value
-        end
-    end
-end
-
 function IT:CreateState()
     self.state = { nbHourInstances = 0, nbDayInstances = 0, nextHourReset, nextDayReset, isInTrackedInstance }
     self:UpdateState()
@@ -49,19 +24,19 @@ end
 function IT:Display()
     self.displayTimer = self:ScheduleRepeatingTimer('DisplayState', 1)
     self.titleFrame:Show()
-    self.db.char.isDisplayed = true
+    self.currentPlayerData.isDisplayed = true
 end
 
 function IT:Hide()
     self.titleFrame:Hide()
-    self.db.char.isDisplayed = false
+    self.currentPlayerData.isDisplayed = false
     self:CancelTimer(self.displayTimer)
 end
 
 function IT:InsertCurrentInstanceInHistory(currentInstance)
     local instanceFound = false
     self.state.isInTrackedInstance = true
-    for _, instance in ipairs(self.db.char.instanceHistory) do
+    for _, instance in ipairs(self.currentPlayerData.instanceHistory) do
         if instance.zoneUID == currentInstance.zoneUID and instance.zoneText == currentInstance.zoneText then
             instanceFound = true
             instance.timestamp = time()
@@ -69,9 +44,9 @@ function IT:InsertCurrentInstanceInHistory(currentInstance)
         end
     end
     if not instanceFound then
-        table.insert(self.db.char.instanceHistory, { timestamp = time(), zoneUID = currentInstance.zoneUID, zoneText = currentInstance.zoneText })
+        table.insert(self.currentPlayerData.instanceHistory, { timestamp = time(), zoneUID = currentInstance.zoneUID, zoneText = currentInstance.zoneText })
     end
-    table.sort(self.db.char.instanceHistory, function(a, b)
+    table.sort(self.currentPlayerData.instanceHistory, function(a, b)
         return a.timestamp < b.timestamp
     end)
     self.currentInstanceTimestampTimer = self:ScheduleRepeatingTimer('SetCurrentInstanceTime', 1)
@@ -79,16 +54,16 @@ function IT:InsertCurrentInstanceInHistory(currentInstance)
 end
 
 function IT:SetCurrentInstanceTime()
-    local history = self.db.char.instanceHistory
+    local history = self.currentPlayerData.instanceHistory
     history[table.getn(history)].timestamp = time()
 end
 
 function IT:IsDisplayed()
-    return self.db.char.isDisplayed
+    return self.currentPlayerData.isDisplayed
 end
 
 function IT:UpdateState()
-    local history = self.db.char.instanceHistory
+    local history = self.currentPlayerData.instanceHistory
 
     -- delete old instances --
     while next(history) ~= nil and time() - history[1].timestamp > 86400 do
@@ -182,7 +157,7 @@ function IT:CreateFrames()
     local titleFrame = CreateFrame('Frame', nil, UIParent)
     self.titleFrame = titleFrame
     titleFrame:SetHeight(2 * padding + titleFontHeight)
-    local dbPoint = self.db.char.framePoint
+    local dbPoint = self.currentPlayerData.framePoint
     titleFrame:SetPoint(dbPoint.point, UIParent, dbPoint.relativePoint, dbPoint.xOfs, dbPoint.yOfs)
     titleFrame:SetBackdrop({ bgFile = 'Interface/DialogFrame/UI-DialogBox-Background-Dark' })
 
@@ -198,7 +173,7 @@ function IT:CreateFrames()
     titleFrame:SetScript('OnDragStop', function()
         titleFrame:StopMovingOrSizing()
         local point, _, relativePoint, xOfs, yOfs = titleFrame:GetPoint()
-        self.db.char.framePoint = { point = point, relativePoint = relativePoint, xOfs = xOfs, yOfs = yOfs }
+        self.currentPlayerData.framePoint = { point = point, relativePoint = relativePoint, xOfs = xOfs, yOfs = yOfs }
     end)
 
     -- summary frame --
@@ -246,17 +221,17 @@ function IT:CreateFrames()
     local hourDetailsCheckbox = CreateFrame('CheckButton', nil, summaryFrame, 'ChatConfigCheckButtonTemplate')
     local yOfsCorrection = (hourDetailsCheckbox:GetHeight() - fontHeight) / 2
     hourDetailsCheckbox:SetPoint('TOPLEFT', summaryFrame, 'TOPLEFT', xOfs[4], yOfs[2] + yOfsCorrection)
-    hourDetailsCheckbox:SetChecked(self.db.char.hourDetailsShown)
+    hourDetailsCheckbox:SetChecked(self.currentPlayerData.hourDetailsShown)
     local dayDetailsCheckbox = CreateFrame('CheckButton', nil, summaryFrame, 'ChatConfigCheckButtonTemplate')
     dayDetailsCheckbox:SetPoint('TOPLEFT', summaryFrame, 'TOPLEFT', xOfs[4], yOfs[3] + yOfsCorrection)
-    dayDetailsCheckbox:SetChecked(self.db.char.dayDetailsShown)
+    dayDetailsCheckbox:SetChecked(self.currentPlayerData.dayDetailsShown)
 
     -- details frame --
     local detailsFrame = CreateFrame('Frame', nil, titleFrame)
     self.detailsFrame = detailsFrame
     detailsFrame:SetPoint('TOP', summaryFrame, 'BOTTOM')
     detailsFrame:SetBackdrop({ bgFile = 'Interface/DialogFrame/UI-DialogBox-Background' })
-    if self.db.char.hourDetailsShown or self.db.char.dayDetailsShown then
+    if self.currentPlayerData.hourDetailsShown or self.currentPlayerData.dayDetailsShown then
         detailsFrame:Show()
     else
         detailsFrame:Hide()
@@ -274,10 +249,10 @@ function IT:CreateFrames()
 
     hourDetailsCheckbox:SetScript('OnClick', function()
         dayDetailsCheckbox:SetChecked(false)
-        self.db.char.hourDetailsShown = hourDetailsCheckbox:GetChecked()
-        self.db.char.dayDetailsShown = false
+        self.currentPlayerData.hourDetailsShown = hourDetailsCheckbox:GetChecked()
+        self.currentPlayerData.dayDetailsShown = false
         self:DisplayDetails()
-        if self.db.char.hourDetailsShown then
+        if self.currentPlayerData.hourDetailsShown then
             detailsFrame:Show()
         else
             detailsFrame:Hide()
@@ -286,10 +261,10 @@ function IT:CreateFrames()
 
     dayDetailsCheckbox:SetScript('OnClick', function()
         hourDetailsCheckbox:SetChecked(false)
-        self.db.char.hourDetailsShown = false
-        self.db.char.dayDetailsShown = dayDetailsCheckbox:GetChecked()
+        self.currentPlayerData.hourDetailsShown = false
+        self.currentPlayerData.dayDetailsShown = dayDetailsCheckbox:GetChecked()
         self:DisplayDetails()
-        if self.db.char.dayDetailsShown then
+        if self.currentPlayerData.dayDetailsShown then
             detailsFrame:Show()
         else
             detailsFrame:Hide()
@@ -337,20 +312,20 @@ function IT:DisplayState()
         self.dayNext:SetText('')
     end
 
-    if self.db.char.dayDetailsShown or self.db.char.hourDetailsShown then
+    if self.currentPlayerData.dayDetailsShown or self.currentPlayerData.hourDetailsShown then
         self:DisplayDetails()
     end
 end
 
 function IT:DisplayDetails()
-    local iRow, start, stop, resetDuration = 0, 1, table.getn(self.db.char.instanceHistory), 86400
-    if self.db.char.hourDetailsShown then
+    local iRow, start, stop, resetDuration = 0, 1, table.getn(self.currentPlayerData.instanceHistory), 86400
+    if self.currentPlayerData.hourDetailsShown then
         start = stop - self.state.nbHourInstances + 1
         resetDuration = 3600
     end
     for i = start, stop do
         iRow = iRow + 1
-        local instance = self.db.char.instanceHistory[i]
+        local instance = self.currentPlayerData.instanceHistory[i]
         if iRow > table.getn(self.detailsFrame.rows) then
             local row = self:CreateFontString(self.detailsFrame)
             row:SetPoint('TOPLEFT', self.detailsFrame, 'TOPLEFT', padding, -padding * iRow - fontHeight * (iRow - 1))
@@ -359,8 +334,8 @@ function IT:DisplayDetails()
         self.detailsFrame.rows[iRow]:SetText(iRow .. '. ' .. instance.zoneText .. ' ' .. self:TimerToText(instance.timestamp + resetDuration - time()))
     end
     if self.state.isInTrackedInstance then
-        local instance, timerText = self.db.char.instanceHistory[table.getn(self.db.char.instanceHistory)], '01:00:00'
-        if self.db.char.dayDetailsShown then
+        local instance, timerText = self.currentPlayerData.instanceHistory[table.getn(self.currentPlayerData.instanceHistory)], '01:00:00'
+        if self.currentPlayerData.dayDetailsShown then
             timerText = '24:00:00'
         end
         self.detailsFrame.rows[iRow]:SetText(iRow .. '. ' .. instance.zoneText .. ' ' .. timerText)
@@ -369,6 +344,56 @@ function IT:DisplayDetails()
         self.detailsFrame.rows[i]:SetText('')
     end
     self.detailsFrame:SetHeight(iRow * fontHeight + (iRow + 1) * padding)
+end
+
+--------------
+-- Database --
+--------------
+
+function IT:GetDefaultDatabase()
+    return { char = {}, version = self.version }
+end
+
+function IT:GetDefaultFramePoint()
+    return { point = 'CENTER', relativePoint = 'CENTER', xOfs = 0, yOfs = 0 }
+end
+
+function IT:GetDefaultCharData()
+    return {
+        framePoint = self:GetDefaultFramePoint(),
+        hourDetailsShown = false,
+        dayDetailsShown = false,
+        isDisplayed = true,
+        instanceHistory = {}
+    }
+end
+
+function IT:MigrateFromOldVersion()
+    for key, _ in pairs(self.db) do
+        if key ~= 'char' then
+            self.db[key] = nil
+        end
+    end
+
+    self.db.version = self.version
+end
+
+function IT:InitDatabase()
+    if InstanceTrackDB == nil then
+        InstanceTrackDB = self:GetDefaultDatabase()
+    end
+
+    self.db = InstanceTrackDB
+
+    local currentPlayerString = UnitName('player') .. ' _ ' .. GetRealmName()
+    if self.db.char[currentPlayerString] == nil then
+        self.db.char[currentPlayerString] = self:GetDefaultCharData()
+    end
+    self.currentPlayerData = self.db.char[currentPlayerString]
+
+    if self.db.version ~= self.version then
+        self:MigrateFromOldVersion()
+    end
 end
 
 ----------
@@ -385,8 +410,8 @@ function IT:SlashCommand(input)
     elseif input == 'hide' then
         self:Hide()
     elseif input == 'reset' then
-        self.db.char.framePoint = self.defaults.char.framePoint
-        self.db.char.isDisplayed = true
+        self.currentPlayerData.framePoint = self:GetDefaultFramePoint()
+        self.currentPlayerData.isDisplayed = true
         self:Print('Reload to reset position.')
     else
         self:Print('Available commands: \'show\', \'hide\' and \'reset\'.')
