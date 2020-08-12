@@ -27,19 +27,6 @@ InstanceTrack.defaults = {
     }
 }
 
-function InstanceTrack:ChatCommand(input)
-    if input == 'show' then
-        self:Display()
-    elseif input == 'hide' then
-        self:Hide()
-    elseif input == 'reset' then
-        self.db.char.framePoint = self.defaults.char.framePoint
-        self:Print('Reload to reset position.')
-    else
-        self:Print('Available commands: \'show\', \'hide\' and \'reset\'.')
-    end
-end
-
 function InstanceTrack:CreateDB()
     self.db = LibStub('AceDB-3.0'):New('InstanceTrackDB', self.defaults)
 
@@ -384,4 +371,21 @@ function InstanceTrack:DisplayDetails()
         self.detailsFrame.rows[i]:SetText('')
     end
     self.detailsFrame:SetHeight(iRow * fontHeight + (iRow + 1) * padding)
+end
+
+----------
+-- Chat --
+----------
+
+function InstanceTrack:ChatCommand(input)
+    if input == 'show' then
+        self:Display()
+    elseif input == 'hide' then
+        self:Hide()
+    elseif input == 'reset' then
+        self.db.char.framePoint = self.defaults.char.framePoint
+        self:Print('Reload to reset position.')
+    else
+        self:Print('Available commands: \'show\', \'hide\' and \'reset\'.')
+    end
 end
