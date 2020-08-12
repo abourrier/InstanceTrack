@@ -387,6 +387,7 @@ do
             IT:Hide()
         elseif input == 'reset' then
             IT.db.char.framePoint = IT.defaults.char.framePoint
+            IT.db.char.isDisplayed = true
             IT:Print('Reload to reset position.')
         else
             IT:Print('Available commands: \'show\', \'hide\' and \'reset\'.')
