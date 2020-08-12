@@ -1,12 +1,12 @@
-local InstanceTrack = LibStub('AceAddon-3.0'):NewAddon('InstanceTrack', 'AceEvent-3.0', 'AceTimer-3.0')
+local IT = LibStub('AceAddon-3.0'):NewAddon('InstanceTrack', 'AceEvent-3.0', 'AceTimer-3.0')
 
-function InstanceTrack:OnInitialize()
+function IT:OnInitialize()
     self:CreateDB()
     self:CreateState()
     self:RegisterEvent('PLAYER_ENTERING_WORLD')
 end
 
-function InstanceTrack:OnEnable()
+function IT:OnEnable()
     self:CreateFrames()
     if self:IsDisplayed() then
         self:Display()
@@ -15,7 +15,7 @@ function InstanceTrack:OnEnable()
     end
 end
 
-InstanceTrack.defaults = {
+IT.defaults = {
     char = {
         framePoint = { point = 'CENTER', relativePoint = 'CENTER', xOfs = 0, yOfs = 0 },
         isDisplayed = true,
@@ -25,7 +25,7 @@ InstanceTrack.defaults = {
     }
 }
 
-function InstanceTrack:CreateDB()
+function IT:CreateDB()
     self.db = LibStub('AceDB-3.0'):New('InstanceTrackDB', self.defaults)
 
     for key, _ in pairs(self.db.char) do
@@ -41,24 +41,24 @@ function InstanceTrack:CreateDB()
     end
 end
 
-function InstanceTrack:CreateState()
+function IT:CreateState()
     self.state = { nbHourInstances = 0, nbDayInstances = 0, nextHourReset, nextDayReset, isInTrackedInstance }
     self:UpdateState()
 end
 
-function InstanceTrack:Display()
+function IT:Display()
     self.displayTimer = self:ScheduleRepeatingTimer('DisplayState', 1)
     self.titleFrame:Show()
     self.db.char.isDisplayed = true
 end
 
-function InstanceTrack:Hide()
+function IT:Hide()
     self.titleFrame:Hide()
     self.db.char.isDisplayed = false
     self:CancelTimer(self.displayTimer)
 end
 
-function InstanceTrack:InsertCurrentInstanceInHistory(currentInstance)
+function IT:InsertCurrentInstanceInHistory(currentInstance)
     local instanceFound = false
     self.state.isInTrackedInstance = true
     for _, instance in ipairs(self.db.char.instanceHistory) do
@@ -78,16 +78,16 @@ function InstanceTrack:InsertCurrentInstanceInHistory(currentInstance)
     self:UpdateState()
 end
 
-function InstanceTrack:SetCurrentInstanceTime()
+function IT:SetCurrentInstanceTime()
     local history = self.db.char.instanceHistory
     history[table.getn(history)].timestamp = time()
 end
 
-function InstanceTrack:IsDisplayed()
+function IT:IsDisplayed()
     return self.db.char.isDisplayed
 end
 
-function InstanceTrack:UpdateState()
+function IT:UpdateState()
     local history = self.db.char.instanceHistory
 
     -- delete old instances --
@@ -122,7 +122,7 @@ function InstanceTrack:UpdateState()
 
 end
 
-function InstanceTrack:PLAYER_ENTERING_WORLD()
+function IT:PLAYER_ENTERING_WORLD()
     self:CancelTimer(self.currentInstanceTimestampTimer)
     self.state.isInTrackedInstance = false
     local _, instanceType = IsInInstance()
@@ -133,7 +133,7 @@ function InstanceTrack:PLAYER_ENTERING_WORLD()
     end
 end
 
-function InstanceTrack:PLAYER_TARGET_CHANGED()
+function IT:PLAYER_TARGET_CHANGED()
     local targetGUID = UnitGUID('target')
     if (targetGUID ~= nil) and (targetGUID:sub(1, 8) == 'Creature') then
         local _, _, _, _, zoneUID, _, _ = strsplit('-', targetGUID)
@@ -153,7 +153,7 @@ local function format(number)
     end
 end
 
-function InstanceTrack:TimerToText(timer)
+function IT:TimerToText(timer)
     local seconds = timer % 60
     timer = timer - seconds
     local minutes = (timer / 60) % 60
@@ -169,14 +169,14 @@ function InstanceTrack:TimerToText(timer)
     end
 end
 
-function InstanceTrack:CreateFontString(parent)
+function IT:CreateFontString(parent)
     local fontString = parent:CreateFontString()
     fontString:SetFont(font, fontHeight)
     fontString:SetJustifyH('LEFT')
     return fontString
 end
 
-function InstanceTrack:CreateFrames()
+function IT:CreateFrames()
 
     -- title frame --
     local titleFrame = CreateFrame('Frame', nil, UIParent)
@@ -298,7 +298,7 @@ function InstanceTrack:CreateFrames()
 
 end
 
-function InstanceTrack:DisplayState()
+function IT:DisplayState()
     self.hourInstances:SetText(self.state.nbHourInstances .. '/5')
     if self.state.nbHourInstances > 4 then
         self.hourInstances:SetTextColor(1, 0, 0)
@@ -342,7 +342,7 @@ function InstanceTrack:DisplayState()
     end
 end
 
-function InstanceTrack:DisplayDetails()
+function IT:DisplayDetails()
     local iRow, start, stop, resetDuration = 0, 1, table.getn(self.db.char.instanceHistory), 86400
     if self.db.char.hourDetailsShown then
         start = stop - self.state.nbHourInstances + 1
@@ -376,20 +376,20 @@ end
 ----------
 
 do
-    function InstanceTrack:Print(message)
+    function IT:Print(message)
         print('|cFF00A0FFInstanceTrack: |r' .. message)
     end
 
     local function SlashCommand(input)
         if input == 'show' then
-            InstanceTrack:Display()
+            IT:Display()
         elseif input == 'hide' then
-            InstanceTrack:Hide()
+            IT:Hide()
         elseif input == 'reset' then
-            InstanceTrack.db.char.framePoint = InstanceTrack.defaults.char.framePoint
-            InstanceTrack:Print('Reload to reset position.')
+            IT.db.char.framePoint = IT.defaults.char.framePoint
+            IT:Print('Reload to reset position.')
         else
-            InstanceTrack:Print('Available commands: \'show\', \'hide\' and \'reset\'.')
+            IT:Print('Available commands: \'show\', \'hide\' and \'reset\'.')
         end
     end
 
