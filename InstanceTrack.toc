@@ -6,6 +6,4 @@
 ## SavedVariables: InstanceTrackDB
 
 embeds.xml
-InstanceTrack_Core.lua
-InstanceTrack_UI.lua
-InstanceTrack_Logic.lua
+InstanceTrack.lua
