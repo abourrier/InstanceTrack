@@ -4,10 +4,11 @@ IT.version = '2.1'
 function IT:OnInitialize()
     self:InitDatabase()
     self:CreateState()
+    self:InitUI()
     self:RegisterEvent('PLAYER_ENTERING_WORLD')
 end
 
-function IT:OnEnable()
+function IT:InitUI()
     self:CreateFrames()
     if self:IsDisplayed() then
         self:Display()
