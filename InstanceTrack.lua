@@ -5,6 +5,7 @@ function IT:OnInitialize()
     self:InitDatabase()
     self:CreateState()
     self:InitUI()
+    self:ScheduleRepeatingTimer('OneHertzCallback', 1)
     self:RegisterEvent('PLAYER_ENTERING_WORLD')
 end
 
@@ -23,15 +24,13 @@ function IT:CreateState()
 end
 
 function IT:Display()
-    self.displayTimer = self:ScheduleRepeatingTimer('DisplayState', 1)
-    self.titleFrame:Show()
     self.currentPlayerData.isDisplayed = true
+    self.titleFrame:Show()
 end
 
 function IT:Hide()
-    self.titleFrame:Hide()
     self.currentPlayerData.isDisplayed = false
-    self:CancelTimer(self.displayTimer)
+    self.titleFrame:Hide()
 end
 
 function IT:IsDisplayed()
@@ -302,12 +301,26 @@ function IT:DisplayDetails()
     self.detailsFrame:SetHeight(iRow * fontHeight + (iRow + 1) * padding)
 end
 
+
+------------------
+-- Update Timer --
+------------------
+
+function IT:OneHertzCallback()
+    local time = time()
+    if self.currentInstance then
+        self.currentInstance.timestamp = time
+    end
+    if self.currentPlayerData.isDisplayed then
+        self:DisplayState()
+    end
+end
+
 --------------
 -- Tracking --
 --------------
 
 function IT:PLAYER_ENTERING_WORLD()
-    self:CancelTimer(self.currentInstanceTimestampTimer)
     self.currentInstance = nil
     local _, instanceType = IsInInstance()
     if instanceType == 'party' or instanceType == 'raid' then
@@ -347,13 +360,9 @@ function IT:InsertCurrentInstanceInHistory(currentInstance)
     end)
 
     self.currentInstance = history[table.getn(history)]
-    self.currentInstanceTimestampTimer = self:ScheduleRepeatingTimer('SetCurrentInstanceTime', 1)
     self:UpdateState()
 end
 
-function IT:SetCurrentInstanceTime()
-    self.currentInstance.timestamp = time()
-end
 
 --------------
 -- Database --
