@@ -23,16 +23,6 @@ function IT:CreateState()
     self:UpdateState()
 end
 
-function IT:Display()
-    self.currentPlayerData.isDisplayed = true
-    self.titleFrame:Show()
-end
-
-function IT:Hide()
-    self.currentPlayerData.isDisplayed = false
-    self.titleFrame:Hide()
-end
-
 function IT:UpdateState()
     local history = self.currentPlayerData.instanceHistory
 
@@ -199,6 +189,16 @@ end
 IT.font = 'Fonts/FRIZQT__.TTF'
 IT.fontHeight = 10
 IT.padding = 6
+
+function IT:Display()
+    self.currentPlayerData.isDisplayed = true
+    self.titleFrame:Show()
+end
+
+function IT:Hide()
+    self.currentPlayerData.isDisplayed = false
+    self.titleFrame:Hide()
+end
 
 function IT:formatNumber(number)
     if number < 10 then
