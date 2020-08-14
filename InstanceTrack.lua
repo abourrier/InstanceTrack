@@ -251,21 +251,13 @@ function IT:DisplayState()
     end
 
     if self.state.nextHourReset then
-        if self.state.nbHourInstances == 1 and self.currentInstance then
-            self.hourNext:SetText('01:00:00')
-        else
-            self.hourNext:SetText(self:TimerToText(self.state.nextHourReset.timestamp + 3600 - self.time))
-        end
+        self.hourNext:SetText(self:TimerToText(self.state.nextHourReset.timestamp + 3600 - self.time))
     else
         self.hourNext:SetText('')
     end
 
     if self.state.nextDayReset then
-        if self.state.nbDayInstances == 1 and self.currentInstance then
-            self.dayNext:SetText('24:00:00')
-        else
-            self.dayNext:SetText(self:TimerToText(self.state.nextDayReset.timestamp + 86400 - self.time))
-        end
+        self.dayNext:SetText(self:TimerToText(self.state.nextDayReset.timestamp + 86400 - self.time))
     else
         self.dayNext:SetText('')
     end
@@ -402,7 +394,7 @@ function IT:InitDatabase()
 
     self.db = InstanceTrackDB
 
-    local currentPlayerString = UnitName('player') .. ' _ ' .. GetRealmName()
+    local currentPlayerString = UnitName('player') .. ' - ' .. GetRealmName()
     if self.db.char[currentPlayerString] == nil then
         self.db.char[currentPlayerString] = self:GetDefaultCharData()
     end
