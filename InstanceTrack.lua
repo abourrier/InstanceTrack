@@ -11,7 +11,7 @@ end
 
 function IT:InitUI()
     self:CreateFrames()
-    if self:IsDisplayed() then
+    if self.currentPlayerData.isDisplayed then
         self:Display()
     else
         self:Hide()
@@ -31,10 +31,6 @@ end
 function IT:Hide()
     self.currentPlayerData.isDisplayed = false
     self.titleFrame:Hide()
-end
-
-function IT:IsDisplayed()
-    return self.currentPlayerData.isDisplayed
 end
 
 function IT:UpdateState()
