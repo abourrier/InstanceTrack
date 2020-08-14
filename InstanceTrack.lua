@@ -249,7 +249,7 @@ function IT:DisplayState()
     end
 
     if self.state.nextHourReset ~= nil then
-        if self.state.nbHourInstances == 1 and self.inTrackedInstance then
+        if self.state.nbHourInstances == 1 and self.currentInstance then
             self.hourNext:SetText('01:00:00')
         else
             self.hourNext:SetText(self:TimerToText(self.state.nextHourReset.timestamp + 3600 - time()))
@@ -259,7 +259,7 @@ function IT:DisplayState()
     end
 
     if self.state.nextDayReset ~= nil then
-        if self.state.nbDayInstances == 1 and self.inTrackedInstance then
+        if self.state.nbDayInstances == 1 and self.currentInstance then
             self.dayNext:SetText('24:00:00')
         else
             self.dayNext:SetText(self:TimerToText(self.state.nextDayReset.timestamp + 86400 - time()))
@@ -289,7 +289,7 @@ function IT:DisplayDetails()
         end
         self.detailsFrame.rows[iRow]:SetText(iRow .. '. ' .. instance.zoneText .. ' ' .. self:TimerToText(instance.timestamp + resetDuration - time()))
     end
-    if self.inTrackedInstance then
+    if self.currentInstance then
         local instance, timerText = self.currentPlayerData.instanceHistory[table.getn(self.currentPlayerData.instanceHistory)], '01:00:00'
         if self.currentPlayerData.dayDetailsShown then
             timerText = '24:00:00'
@@ -308,7 +308,7 @@ end
 
 function IT:PLAYER_ENTERING_WORLD()
     self:CancelTimer(self.currentInstanceTimestampTimer)
-    self.inTrackedInstance = false
+    self.currentInstance = nil
     local _, instanceType = IsInInstance()
     if instanceType == 'party' or instanceType == 'raid' then
         self:RegisterEvent('PLAYER_TARGET_CHANGED')
@@ -328,8 +328,9 @@ end
 
 function IT:InsertCurrentInstanceInHistory(currentInstance)
     local instanceFound = false
+    local history = self.currentPlayerData.instanceHistory
 
-    for _, instance in ipairs(self.currentPlayerData.instanceHistory) do
+    for _, instance in ipairs(history) do
         if instance.zoneUID == currentInstance.zoneUID and instance.zoneText == currentInstance.zoneText then
             instanceFound = true
             instance.timestamp = time()
@@ -338,21 +339,20 @@ function IT:InsertCurrentInstanceInHistory(currentInstance)
     end
 
     if not instanceFound then
-        table.insert(self.currentPlayerData.instanceHistory, { timestamp = time(), zoneUID = currentInstance.zoneUID, zoneText = currentInstance.zoneText })
+        table.insert(history, { timestamp = time(), zoneUID = currentInstance.zoneUID, zoneText = currentInstance.zoneText })
     end
 
-    table.sort(self.currentPlayerData.instanceHistory, function(a, b)
+    table.sort(history, function(a, b)
         return a.timestamp < b.timestamp
     end)
 
-    self.inTrackedInstance = true
+    self.currentInstance = history[table.getn(history)]
     self.currentInstanceTimestampTimer = self:ScheduleRepeatingTimer('SetCurrentInstanceTime', 1)
     self:UpdateState()
 end
 
 function IT:SetCurrentInstanceTime()
-    local history = self.currentPlayerData.instanceHistory
-    history[table.getn(history)].timestamp = time()
+    self.currentInstance.timestamp = time()
 end
 
 --------------
