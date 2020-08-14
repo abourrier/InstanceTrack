@@ -192,50 +192,6 @@ function IT:CreateFrames()
 
 end
 
-function IT:DisplayState()
-    self.hourInstances:SetText(self.state.nbHourInstances .. '/5')
-    if self.state.nbHourInstances > 4 then
-        self.hourInstances:SetTextColor(1, 0, 0)
-    elseif self.state.nbHourInstances > 3 then
-        self.hourInstances:SetTextColor(1, 0.647, 0)
-    else
-        self.hourInstances:SetTextColor(0, 1, 0)
-    end
-
-    self.dayInstances:SetText(self.state.nbDayInstances .. '/30')
-    if self.state.nbDayInstances > 29 then
-        self.dayInstances:SetTextColor(1, 0, 0)
-    elseif self.state.nbDayInstances > 24 then
-        self.dayInstances:SetTextColor(1, 0.647, 0)
-    else
-        self.dayInstances:SetTextColor(0, 1, 0)
-    end
-
-    if self.state.nextHourReset ~= nil then
-        if self.state.nbHourInstances == 1 and self.currentInstance then
-            self.hourNext:SetText('01:00:00')
-        else
-            self.hourNext:SetText(self:TimerToText(self.state.nextHourReset.timestamp + 3600 - time()))
-        end
-    else
-        self.hourNext:SetText('')
-    end
-
-    if self.state.nextDayReset ~= nil then
-        if self.state.nbDayInstances == 1 and self.currentInstance then
-            self.dayNext:SetText('24:00:00')
-        else
-            self.dayNext:SetText(self:TimerToText(self.state.nextDayReset.timestamp + 86400 - time()))
-        end
-    else
-        self.dayNext:SetText('')
-    end
-
-    if self.currentPlayerData.dayDetailsShown or self.currentPlayerData.hourDetailsShown then
-        self:DisplayDetails()
-    end
-end
-
 --------
 -- UI --
 --------
@@ -273,6 +229,50 @@ function IT:CreateFontString(parent)
     fontString:SetFont(self.font, self.fontHeight)
     fontString:SetJustifyH('LEFT')
     return fontString
+end
+
+function IT:DisplayState()
+    self.hourInstances:SetText(self.state.nbHourInstances .. '/5')
+    if self.state.nbHourInstances > 4 then
+        self.hourInstances:SetTextColor(1, 0, 0)
+    elseif self.state.nbHourInstances > 3 then
+        self.hourInstances:SetTextColor(1, 0.647, 0)
+    else
+        self.hourInstances:SetTextColor(0, 1, 0)
+    end
+
+    self.dayInstances:SetText(self.state.nbDayInstances .. '/30')
+    if self.state.nbDayInstances > 29 then
+        self.dayInstances:SetTextColor(1, 0, 0)
+    elseif self.state.nbDayInstances > 24 then
+        self.dayInstances:SetTextColor(1, 0.647, 0)
+    else
+        self.dayInstances:SetTextColor(0, 1, 0)
+    end
+
+    if self.state.nextHourReset then
+        if self.state.nbHourInstances == 1 and self.currentInstance then
+            self.hourNext:SetText('01:00:00')
+        else
+            self.hourNext:SetText(self:TimerToText(self.state.nextHourReset.timestamp + 3600 - self.time))
+        end
+    else
+        self.hourNext:SetText('')
+    end
+
+    if self.state.nextDayReset then
+        if self.state.nbDayInstances == 1 and self.currentInstance then
+            self.dayNext:SetText('24:00:00')
+        else
+            self.dayNext:SetText(self:TimerToText(self.state.nextDayReset.timestamp + 86400 - self.time))
+        end
+    else
+        self.dayNext:SetText('')
+    end
+
+    if self.currentPlayerData.dayDetailsShown or self.currentPlayerData.hourDetailsShown then
+        self:DisplayDetails()
+    end
 end
 
 function IT:DisplayDetails()
