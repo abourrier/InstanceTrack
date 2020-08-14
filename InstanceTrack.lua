@@ -9,55 +9,6 @@ function IT:OnInitialize()
     self:RegisterEvent('PLAYER_ENTERING_WORLD')
 end
 
-function IT:InitUI()
-    self:CreateFrames()
-    if self.currentPlayerData.isDisplayed then
-        self:Display()
-    else
-        self:Hide()
-    end
-end
-
-function IT:CreateState()
-    self.state = { nbHourInstances = 0, nbDayInstances = 0, nextHourReset, nextDayReset }
-    self:UpdateState()
-end
-
-function IT:UpdateState()
-    local history = self.currentPlayerData.instanceHistory
-
-    -- delete old instances --
-    while next(history) ~= nil and time() - history[1].timestamp > 86400 do
-        table.remove(history, 1)
-    end
-
-    -- day instances --
-    self.state.nbDayInstances = table.getn(history)
-    if self.state.nbDayInstances > 0 then
-        local index = math.max(1, self.state.nbDayInstances - 29)
-        self.state.nextDayReset = history[index]
-        self:ScheduleTimer('UpdateState', self.state.nextDayReset.timestamp + 86400 - time())
-    else
-        self.state.nextDayReset = nil
-    end
-
-    -- hour instances --
-    local i, nbHour = table.getn(history), 0
-    while i > 0 and time() - history[i].timestamp < 3600 do
-        nbHour = nbHour + 1
-        i = i - 1
-    end
-    self.state.nbHourInstances = nbHour
-    if self.state.nbHourInstances > 0 then
-        local indexDelta = math.max(1, self.state.nbHourInstances - 4)
-        self.state.nextHourReset = history[i + indexDelta]
-        self:ScheduleTimer('UpdateState', self.state.nextHourReset.timestamp + 3600 - time())
-    else
-        self.state.nextHourReset = nil
-    end
-
-end
-
 local nbSummaryLines, padding, fontHeight, titleFontHeight = 3, 6, 10, 11
 
 function IT:CreateFrames()
@@ -182,6 +133,58 @@ function IT:CreateFrames()
 
 end
 
+---------------------
+-- Displayed state --
+---------------------
+
+function IT:CreateState()
+    self.state = { nbHourInstances = 0, nbDayInstances = 0, nextHourReset, nextDayReset }
+    self.time = time()
+    self:UpdateState()
+end
+
+function IT:UpdateState()
+    self.nextStateUpdate = nil
+    local history = self.currentPlayerData.instanceHistory
+
+    -- delete old instances --
+    while next(history) and self.time - history[1].timestamp > 86400 do
+        table.remove(history, 1)
+    end
+
+    -- day instances --
+    self.state.nbDayInstances = table.getn(history)
+    if self.state.nbDayInstances > 0 then
+        local index = math.max(1, self.state.nbDayInstances - 29)
+        self.state.nextDayReset = history[index]
+        local nextDayReset = self.state.nextDayReset.timestamp + 86400
+        if not self.nextStateUpdate or self.nextStateUpdate > nextDayReset then
+            self.nextStateUpdate = nextDayReset
+        end
+    else
+        self.state.nextDayReset = nil
+    end
+
+    -- hour instances --
+    local i, nbHour = table.getn(history), 0
+    while i > 0 and time() - history[i].timestamp < 3600 do
+        nbHour = nbHour + 1
+        i = i - 1
+    end
+    self.state.nbHourInstances = nbHour
+    if self.state.nbHourInstances > 0 then
+        local indexDelta = math.max(1, self.state.nbHourInstances - 4)
+        self.state.nextHourReset = history[i + indexDelta]
+        local nextHourReset = self.state.nextHourReset.timestamp + 3600
+        if not self.nextStateUpdate or self.nextStateUpdate > nextHourReset then
+            self.nextStateUpdate = nextHourReset
+        end
+    else
+        self.state.nextHourReset = nil
+    end
+
+end
+
 --------
 -- UI --
 --------
@@ -189,6 +192,15 @@ end
 IT.font = 'Fonts/FRIZQT__.TTF'
 IT.fontHeight = 10
 IT.padding = 6
+
+function IT:InitUI()
+    self:CreateFrames()
+    if self.currentPlayerData.isDisplayed then
+        self:Display()
+    else
+        self:Hide()
+    end
+end
 
 function IT:Display()
     self.currentPlayerData.isDisplayed = true
@@ -299,11 +311,17 @@ end
 
 function IT:OneHertzCallback()
     self.time = time()
+
     if self.currentInstance then
         self.currentInstance.timestamp = self.time
     end
+
     if self.currentPlayerData.isDisplayed then
         self:DisplayState()
+    end
+
+    if self.nextStateUpdate == self.time then
+        self:UpdateState()
     end
 end
 
