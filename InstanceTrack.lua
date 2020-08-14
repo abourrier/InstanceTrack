@@ -69,38 +69,6 @@ function IT:UpdateState()
 end
 
 local nbSummaryLines, padding, fontHeight, titleFontHeight = 3, 6, 10, 11
-local font = 'Fonts/FRIZQT__.TTF'
-
-local function format(number)
-    if number < 10 then
-        return '0' .. number
-    else
-        return number
-    end
-end
-
-function IT:TimerToText(timer)
-    local seconds = timer % 60
-    timer = timer - seconds
-    local minutes = (timer / 60) % 60
-    timer = timer - 60 * minutes
-    local hours = timer / 3600
-
-    if hours > 0 then
-        return format(hours) .. ':' .. format(minutes) .. ':' .. format(seconds)
-    elseif minutes > 0 then
-        return format(minutes) .. ':' .. format(seconds)
-    else
-        return format(seconds)
-    end
-end
-
-function IT:CreateFontString(parent)
-    local fontString = parent:CreateFontString()
-    fontString:SetFont(font, fontHeight)
-    fontString:SetJustifyH('LEFT')
-    return fontString
-end
 
 function IT:CreateFrames()
 
@@ -268,44 +236,79 @@ function IT:DisplayState()
     end
 end
 
+--------
+-- UI --
+--------
+
+IT.font = 'Fonts/FRIZQT__.TTF'
+IT.fontHeight = 10
+IT.padding = 6
+
+function IT:formatNumber(number)
+    if number < 10 then
+        return '0' .. number
+    else
+        return number
+    end
+end
+
+function IT:TimerToText(timer)
+    local seconds = timer % 60
+    timer = timer - seconds
+    local minutes = (timer / 60) % 60
+    timer = timer - 60 * minutes
+    local hours = timer / 3600
+
+    if hours > 0 then
+        return self:formatNumber(hours) .. ':' .. self:formatNumber(minutes) .. ':' .. self:formatNumber(seconds)
+    elseif minutes > 0 then
+        return self:formatNumber(minutes) .. ':' .. self:formatNumber(seconds)
+    else
+        return self:formatNumber(seconds)
+    end
+end
+
+function IT:CreateFontString(parent)
+    local fontString = parent:CreateFontString()
+    fontString:SetFont(self.font, self.fontHeight)
+    fontString:SetJustifyH('LEFT')
+    return fontString
+end
+
 function IT:DisplayDetails()
     local iRow, start, stop, resetDuration = 0, 1, table.getn(self.currentPlayerData.instanceHistory), 86400
+
     if self.currentPlayerData.hourDetailsShown then
         start = stop - self.state.nbHourInstances + 1
         resetDuration = 3600
     end
+
     for i = start, stop do
         iRow = iRow + 1
         local instance = self.currentPlayerData.instanceHistory[i]
         if iRow > table.getn(self.detailsFrame.rows) then
             local row = self:CreateFontString(self.detailsFrame)
-            row:SetPoint('TOPLEFT', self.detailsFrame, 'TOPLEFT', padding, -padding * iRow - fontHeight * (iRow - 1))
+            row:SetPoint('TOPLEFT', self.detailsFrame, 'TOPLEFT', self.padding, -self.padding * iRow - self.fontHeight * (iRow - 1))
             self.detailsFrame.rows[iRow] = row
         end
-        self.detailsFrame.rows[iRow]:SetText(iRow .. '. ' .. instance.zoneText .. ' ' .. self:TimerToText(instance.timestamp + resetDuration - time()))
+        self.detailsFrame.rows[iRow]:SetText(iRow .. '. ' .. instance.zoneText .. ' ' .. self:TimerToText(instance.timestamp + resetDuration - self.time))
     end
-    if self.currentInstance then
-        local instance, timerText = self.currentPlayerData.instanceHistory[table.getn(self.currentPlayerData.instanceHistory)], '01:00:00'
-        if self.currentPlayerData.dayDetailsShown then
-            timerText = '24:00:00'
-        end
-        self.detailsFrame.rows[iRow]:SetText(iRow .. '. ' .. instance.zoneText .. ' ' .. timerText)
-    end
+
     for i = iRow + 1, table.getn(self.detailsFrame.rows) do
         self.detailsFrame.rows[i]:SetText('')
     end
-    self.detailsFrame:SetHeight(iRow * fontHeight + (iRow + 1) * padding)
-end
 
+    self.detailsFrame:SetHeight(iRow * self.fontHeight + (iRow + 1) * self.padding)
+end
 
 ------------------
 -- Update Timer --
 ------------------
 
 function IT:OneHertzCallback()
-    local time = time()
+    self.time = time()
     if self.currentInstance then
-        self.currentInstance.timestamp = time
+        self.currentInstance.timestamp = self.time
     end
     if self.currentPlayerData.isDisplayed then
         self:DisplayState()
