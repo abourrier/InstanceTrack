@@ -18,7 +18,7 @@ function IT:InitUI()
 end
 
 function IT:CreateState()
-    self.state = { nbHourInstances = 0, nbDayInstances = 0, nextHourReset, nextDayReset, isInTrackedInstance }
+    self.state = { nbHourInstances = 0, nbDayInstances = 0, nextHourReset, nextDayReset }
     self:UpdateState()
 end
 
@@ -32,31 +32,6 @@ function IT:Hide()
     self.titleFrame:Hide()
     self.currentPlayerData.isDisplayed = false
     self:CancelTimer(self.displayTimer)
-end
-
-function IT:InsertCurrentInstanceInHistory(currentInstance)
-    local instanceFound = false
-    self.state.isInTrackedInstance = true
-    for _, instance in ipairs(self.currentPlayerData.instanceHistory) do
-        if instance.zoneUID == currentInstance.zoneUID and instance.zoneText == currentInstance.zoneText then
-            instanceFound = true
-            instance.timestamp = time()
-            break
-        end
-    end
-    if not instanceFound then
-        table.insert(self.currentPlayerData.instanceHistory, { timestamp = time(), zoneUID = currentInstance.zoneUID, zoneText = currentInstance.zoneText })
-    end
-    table.sort(self.currentPlayerData.instanceHistory, function(a, b)
-        return a.timestamp < b.timestamp
-    end)
-    self.currentInstanceTimestampTimer = self:ScheduleRepeatingTimer('SetCurrentInstanceTime', 1)
-    self:UpdateState()
-end
-
-function IT:SetCurrentInstanceTime()
-    local history = self.currentPlayerData.instanceHistory
-    history[table.getn(history)].timestamp = time()
 end
 
 function IT:IsDisplayed()
@@ -96,26 +71,6 @@ function IT:UpdateState()
         self.state.nextHourReset = nil
     end
 
-end
-
-function IT:PLAYER_ENTERING_WORLD()
-    self:CancelTimer(self.currentInstanceTimestampTimer)
-    self.state.isInTrackedInstance = false
-    local _, instanceType = IsInInstance()
-    if instanceType == 'party' or instanceType == 'raid' then
-        self:RegisterEvent('PLAYER_TARGET_CHANGED')
-    else
-        self:UnregisterEvent('PLAYER_TARGET_CHANGED')
-    end
-end
-
-function IT:PLAYER_TARGET_CHANGED()
-    local targetGUID = UnitGUID('target')
-    if (targetGUID ~= nil) and (targetGUID:sub(1, 8) == 'Creature') then
-        local _, _, _, _, zoneUID, _, _ = strsplit('-', targetGUID)
-        self:InsertCurrentInstanceInHistory({ zoneText = GetRealZoneText(), zoneUID = zoneUID })
-        self:UnregisterEvent('PLAYER_TARGET_CHANGED')
-    end
 end
 
 local nbSummaryLines, padding, fontHeight, titleFontHeight = 3, 6, 10, 11
@@ -294,7 +249,7 @@ function IT:DisplayState()
     end
 
     if self.state.nextHourReset ~= nil then
-        if self.state.nbHourInstances == 1 and self.state.isInTrackedInstance then
+        if self.state.nbHourInstances == 1 and self.inTrackedInstance then
             self.hourNext:SetText('01:00:00')
         else
             self.hourNext:SetText(self:TimerToText(self.state.nextHourReset.timestamp + 3600 - time()))
@@ -304,7 +259,7 @@ function IT:DisplayState()
     end
 
     if self.state.nextDayReset ~= nil then
-        if self.state.nbDayInstances == 1 and self.state.isInTrackedInstance then
+        if self.state.nbDayInstances == 1 and self.inTrackedInstance then
             self.dayNext:SetText('24:00:00')
         else
             self.dayNext:SetText(self:TimerToText(self.state.nextDayReset.timestamp + 86400 - time()))
@@ -334,7 +289,7 @@ function IT:DisplayDetails()
         end
         self.detailsFrame.rows[iRow]:SetText(iRow .. '. ' .. instance.zoneText .. ' ' .. self:TimerToText(instance.timestamp + resetDuration - time()))
     end
-    if self.state.isInTrackedInstance then
+    if self.inTrackedInstance then
         local instance, timerText = self.currentPlayerData.instanceHistory[table.getn(self.currentPlayerData.instanceHistory)], '01:00:00'
         if self.currentPlayerData.dayDetailsShown then
             timerText = '24:00:00'
@@ -345,6 +300,59 @@ function IT:DisplayDetails()
         self.detailsFrame.rows[i]:SetText('')
     end
     self.detailsFrame:SetHeight(iRow * fontHeight + (iRow + 1) * padding)
+end
+
+--------------
+-- Tracking --
+--------------
+
+function IT:PLAYER_ENTERING_WORLD()
+    self:CancelTimer(self.currentInstanceTimestampTimer)
+    self.inTrackedInstance = false
+    local _, instanceType = IsInInstance()
+    if instanceType == 'party' or instanceType == 'raid' then
+        self:RegisterEvent('PLAYER_TARGET_CHANGED')
+    else
+        self:UnregisterEvent('PLAYER_TARGET_CHANGED')
+    end
+end
+
+function IT:PLAYER_TARGET_CHANGED()
+    local targetGUID = UnitGUID('target')
+    if (targetGUID ~= nil) and (targetGUID:sub(1, 8) == 'Creature') then
+        local _, _, _, _, zoneUID, _, _ = strsplit('-', targetGUID)
+        self:InsertCurrentInstanceInHistory({ zoneText = GetRealZoneText(), zoneUID = zoneUID })
+        self:UnregisterEvent('PLAYER_TARGET_CHANGED')
+    end
+end
+
+function IT:InsertCurrentInstanceInHistory(currentInstance)
+    local instanceFound = false
+
+    for _, instance in ipairs(self.currentPlayerData.instanceHistory) do
+        if instance.zoneUID == currentInstance.zoneUID and instance.zoneText == currentInstance.zoneText then
+            instanceFound = true
+            instance.timestamp = time()
+            break
+        end
+    end
+
+    if not instanceFound then
+        table.insert(self.currentPlayerData.instanceHistory, { timestamp = time(), zoneUID = currentInstance.zoneUID, zoneText = currentInstance.zoneText })
+    end
+
+    table.sort(self.currentPlayerData.instanceHistory, function(a, b)
+        return a.timestamp < b.timestamp
+    end)
+
+    self.inTrackedInstance = true
+    self.currentInstanceTimestampTimer = self:ScheduleRepeatingTimer('SetCurrentInstanceTime', 1)
+    self:UpdateState()
+end
+
+function IT:SetCurrentInstanceTime()
+    local history = self.currentPlayerData.instanceHistory
+    history[table.getn(history)].timestamp = time()
 end
 
 --------------
