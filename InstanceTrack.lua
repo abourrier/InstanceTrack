@@ -145,7 +145,7 @@ end
 
 function IT:UpdateState()
     self.nextStateUpdate = nil
-    local history = self.currentPlayerData.instanceHistory
+    local history = self.displayedHistory
 
     -- delete old instances --
     while next(history) and self.time - history[1].timestamp > 86400 do
@@ -289,7 +289,7 @@ function IT:DisplayDetails()
 
     for i = start, stop do
         iRow = iRow + 1
-        local instance = self.currentPlayerData.instanceHistory[i]
+        local instance = self.displayedHistory[i]
         if iRow > table.getn(self.detailsFrame.rows) then
             local row = self:CreateFontString(self.detailsFrame)
             row:SetPoint('TOPLEFT', self.detailsFrame, 'TOPLEFT', self.padding, -self.padding * iRow - self.fontHeight * (iRow - 1))
@@ -406,6 +406,7 @@ function IT:MigrateFromOldVersion(old_version)
     if not old_version then
         for key, val in pairs(self.db.char) do
             val.displayedCharacter = key
+            val.instanceHistory = val.instanceHistory or {}
         end
     end
 
@@ -419,16 +420,16 @@ function IT:InitDatabase()
 
     self.db = InstanceTrackDB
 
+    if self.db.version ~= self.version then
+        self:MigrateFromOldVersion(self.db.version)
+    end
+
     local currentPlayerString = UnitName('player') .. ' - ' .. GetRealmName()
     if self.db.char[currentPlayerString] == nil then
         self.db.char[currentPlayerString] = self:GetDefaultCharData(currentPlayerString)
     end
     self.currentPlayerData = self.db.char[currentPlayerString]
-    self.displayedCharacter = self.currentPlayerData.displayedCharacter
-
-    if self.db.version ~= self.version then
-        self:MigrateFromOldVersion(self.db.version)
-    end
+    self.displayedHistory = self.db.char[self.currentPlayerData.displayedCharacter].instanceHistory
 end
 
 ----------
