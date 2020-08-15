@@ -9,10 +9,6 @@ function IT:OnInitialize()
     self:RegisterEvent('PLAYER_ENTERING_WORLD')
 end
 
-local nbSummaryLines, padding, fontHeight, titleFontHeight = 3, 6, 10, 11
-
-
-
 ---------------------
 -- Displayed state --
 ---------------------
@@ -102,20 +98,20 @@ function IT:CreateFrames()
     local summaryFrame = CreateFrame('Frame', nil, titleFrame)
     summaryFrame:SetBackdrop({ bgFile = 'Interface/DialogFrame/UI-DialogBox-Background' })
     summaryFrame:SetPoint('TOP', titleFrame, 'BOTTOM')
-    summaryFrame:SetHeight(nbSummaryLines * fontHeight + (nbSummaryLines + 1) * padding)
+    summaryFrame:SetHeight(3 * self.fontHeight + 4 * self.padding)
 
     summaryFrame.titleRow = {}
     local summaryTitleTexts = { 'Period', 'Instances', 'Next reset', 'Details' }
-    local xOfs = { padding, 0, 0, 0, 0 }
-    local yOfs = { -padding, 0, 0, 0 }
+    local xOfs = { self.padding, 0, 0, 0, 0 }
+    local yOfs = { -self.padding, 0, 0, 0 }
     for i = 2, 4 do
-        yOfs[i] = yOfs[i - 1] - (fontHeight + padding)
+        yOfs[i] = yOfs[i - 1] - (self.fontHeight + self.padding)
     end
     for i, text in ipairs(summaryTitleTexts) do
         local fontString = self:CreateFontString(summaryFrame)
         fontString:SetPoint('TOPLEFT', summaryFrame, 'TOPLEFT', xOfs[i], yOfs[1])
         fontString:SetText(text)
-        xOfs[i + 1] = xOfs[i] + fontString:GetWidth() + padding
+        xOfs[i + 1] = xOfs[i] + fontString:GetWidth() + self.padding
         summaryFrame.titleRow[i] = fontString
     end
 
@@ -141,7 +137,7 @@ function IT:CreateFrames()
     dayNext:SetPoint('TOPLEFT', summaryFrame, 'TOPLEFT', xOfs[3], yOfs[3])
 
     local hourDetailsCheckbox = CreateFrame('CheckButton', nil, summaryFrame, 'ChatConfigCheckButtonTemplate')
-    local yOfsCorrection = (hourDetailsCheckbox:GetHeight() - fontHeight) / 2
+    local yOfsCorrection = (hourDetailsCheckbox:GetHeight() - self.fontHeight) / 2
     hourDetailsCheckbox:SetPoint('TOPLEFT', summaryFrame, 'TOPLEFT', xOfs[4], yOfs[2] + yOfsCorrection)
     hourDetailsCheckbox:SetChecked(self.currentPlayerData.hourDetailsShown)
     local dayDetailsCheckbox = CreateFrame('CheckButton', nil, summaryFrame, 'ChatConfigCheckButtonTemplate')
