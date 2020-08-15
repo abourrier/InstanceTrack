@@ -11,18 +11,80 @@ end
 
 local nbSummaryLines, padding, fontHeight, titleFontHeight = 3, 6, 10, 11
 
+
+
+---------------------
+-- Displayed state --
+---------------------
+
+function IT:CreateState()
+    self.state = { nbHourInstances = 0, nbDayInstances = 0, nextHourReset, nextDayReset }
+    self.time = time()
+    self:UpdateState()
+end
+
+function IT:UpdateState()
+    self.nextStateUpdate = nil
+    local history = self.displayedHistory
+
+    -- delete old instances --
+    while next(history) and self.time - history[1].timestamp > 86400 do
+        table.remove(history, 1)
+    end
+
+    -- day instances --
+    self.state.nbDayInstances = table.getn(history)
+    if self.state.nbDayInstances > 0 then
+        local index = math.max(1, self.state.nbDayInstances - 29)
+        self.state.nextDayReset = history[index]
+        local nextDayReset = self.state.nextDayReset.timestamp + 86400
+        if not self.nextStateUpdate or self.nextStateUpdate > nextDayReset then
+            self.nextStateUpdate = nextDayReset
+        end
+    else
+        self.state.nextDayReset = nil
+    end
+
+    -- hour instances --
+    local i, nbHour = table.getn(history), 0
+    while i > 0 and self.time - history[i].timestamp < 3600 do
+        nbHour = nbHour + 1
+        i = i - 1
+    end
+    self.state.nbHourInstances = nbHour
+    if self.state.nbHourInstances > 0 then
+        local indexDelta = math.max(1, self.state.nbHourInstances - 4)
+        self.state.nextHourReset = history[i + indexDelta]
+        local nextHourReset = self.state.nextHourReset.timestamp + 3600
+        if not self.nextStateUpdate or self.nextStateUpdate > nextHourReset then
+            self.nextStateUpdate = nextHourReset
+        end
+    else
+        self.state.nextHourReset = nil
+    end
+
+end
+
+--------
+-- UI --
+--------
+
+IT.font = 'Fonts/FRIZQT__.TTF'
+IT.fontHeight = 10
+IT.padding = 6
+
 function IT:CreateFrames()
 
     -- title frame --
     local titleFrame = CreateFrame('Frame', nil, UIParent)
     self.titleFrame = titleFrame
-    titleFrame:SetHeight(2 * padding + titleFontHeight)
+    titleFrame:SetHeight(2 * self.padding + self.fontHeight)
     local dbPoint = self.currentPlayerData.framePoint
     titleFrame:SetPoint(dbPoint.point, UIParent, dbPoint.relativePoint, dbPoint.xOfs, dbPoint.yOfs)
     titleFrame:SetBackdrop({ bgFile = 'Interface/DialogFrame/UI-DialogBox-Background-Dark' })
 
     local title = self:CreateFontString(titleFrame)
-    title:SetPoint('TOPLEFT', titleFrame, 'TOPLEFT', padding, -padding)
+    title:SetPoint('TOPLEFT', titleFrame, 'TOPLEFT', self.padding, -self.padding)
     title:SetText('InstanceTrack')
 
     -- moving settings --
@@ -133,66 +195,6 @@ function IT:CreateFrames()
 
 end
 
----------------------
--- Displayed state --
----------------------
-
-function IT:CreateState()
-    self.state = { nbHourInstances = 0, nbDayInstances = 0, nextHourReset, nextDayReset }
-    self.time = time()
-    self:UpdateState()
-end
-
-function IT:UpdateState()
-    self.nextStateUpdate = nil
-    local history = self.displayedHistory
-
-    -- delete old instances --
-    while next(history) and self.time - history[1].timestamp > 86400 do
-        table.remove(history, 1)
-    end
-
-    -- day instances --
-    self.state.nbDayInstances = table.getn(history)
-    if self.state.nbDayInstances > 0 then
-        local index = math.max(1, self.state.nbDayInstances - 29)
-        self.state.nextDayReset = history[index]
-        local nextDayReset = self.state.nextDayReset.timestamp + 86400
-        if not self.nextStateUpdate or self.nextStateUpdate > nextDayReset then
-            self.nextStateUpdate = nextDayReset
-        end
-    else
-        self.state.nextDayReset = nil
-    end
-
-    -- hour instances --
-    local i, nbHour = table.getn(history), 0
-    while i > 0 and self.time - history[i].timestamp < 3600 do
-        nbHour = nbHour + 1
-        i = i - 1
-    end
-    self.state.nbHourInstances = nbHour
-    if self.state.nbHourInstances > 0 then
-        local indexDelta = math.max(1, self.state.nbHourInstances - 4)
-        self.state.nextHourReset = history[i + indexDelta]
-        local nextHourReset = self.state.nextHourReset.timestamp + 3600
-        if not self.nextStateUpdate or self.nextStateUpdate > nextHourReset then
-            self.nextStateUpdate = nextHourReset
-        end
-    else
-        self.state.nextHourReset = nil
-    end
-
-end
-
---------
--- UI --
---------
-
-IT.font = 'Fonts/FRIZQT__.TTF'
-IT.fontHeight = 10
-IT.padding = 6
-
 function IT:InitUI()
     self:CreateFrames()
     if self.currentPlayerData.isDisplayed then
@@ -280,7 +282,7 @@ function IT:DisplayState()
 end
 
 function IT:DisplayDetails()
-    local iRow, start, stop, resetDuration = 0, 1, table.getn(self.currentPlayerData.instanceHistory), 86400
+    local iRow, start, stop, resetDuration = 0, 1, table.getn(self.displayedHistory), 86400
 
     if self.currentPlayerData.hourDetailsShown then
         start = stop - self.state.nbHourInstances + 1
