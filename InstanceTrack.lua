@@ -167,7 +167,7 @@ function IT:UpdateState()
 
     -- hour instances --
     local i, nbHour = table.getn(history), 0
-    while i > 0 and time() - history[i].timestamp < 3600 do
+    while i > 0 and self.time - history[i].timestamp < 3600 do
         nbHour = nbHour + 1
         i = i - 1
     end
@@ -385,20 +385,27 @@ function IT:GetDefaultFramePoint()
     return { point = 'CENTER', relativePoint = 'CENTER', xOfs = 0, yOfs = 0 }
 end
 
-function IT:GetDefaultCharData()
+function IT:GetDefaultCharData(currentPlayerString)
     return {
         framePoint = self:GetDefaultFramePoint(),
         hourDetailsShown = false,
         dayDetailsShown = false,
         isDisplayed = true,
+        displayedCharacter = currentPlayerString,
         instanceHistory = {}
     }
 end
 
-function IT:MigrateFromOldVersion()
+function IT:MigrateFromOldVersion(old_version)
     for key, _ in pairs(self.db) do
         if key ~= 'char' then
             self.db[key] = nil
+        end
+    end
+
+    if not old_version then
+        for key, val in pairs(self.db.char) do
+            val.displayedCharacter = key
         end
     end
 
@@ -414,12 +421,13 @@ function IT:InitDatabase()
 
     local currentPlayerString = UnitName('player') .. ' - ' .. GetRealmName()
     if self.db.char[currentPlayerString] == nil then
-        self.db.char[currentPlayerString] = self:GetDefaultCharData()
+        self.db.char[currentPlayerString] = self:GetDefaultCharData(currentPlayerString)
     end
     self.currentPlayerData = self.db.char[currentPlayerString]
+    self.displayedCharacter = self.currentPlayerData.displayedCharacter
 
     if self.db.version ~= self.version then
-        self:MigrateFromOldVersion()
+        self:MigrateFromOldVersion(self.db.version)
     end
 end
 
