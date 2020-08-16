@@ -115,6 +115,11 @@ function IT:CreateFrames()
     deleteButton:SetPoint('LEFT', characterDropdown, 'RIGHT', -15, 2)
     deleteButton:SetText('x')
     deleteButton:SetHeight(characterDropdown:GetHeight() / 2)
+    deleteButton:SetScript('OnClick', function()
+        if self.currentPlayerData.displayedCharacter == self.currentPlayerString then
+            self:Print('You cannot delete data relative to the character you are currently playing.')
+        end
+    end)
 
     summaryFrame:SetHeight(3 * self.fontHeight + 4 * self.padding + characterDropdown:GetHeight())
 
@@ -444,6 +449,7 @@ function IT:InitDatabase()
     if self.db.char[currentPlayerString] == nil then
         self.db.char[currentPlayerString] = self:GetDefaultCharData(currentPlayerString)
     end
+    self.currentPlayerString = currentPlayerString
     self.currentPlayerData = self.db.char[currentPlayerString]
     self.displayedHistory = self.db.char[self.currentPlayerData.displayedCharacter].instanceHistory
 end
