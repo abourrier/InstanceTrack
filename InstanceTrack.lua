@@ -79,41 +79,34 @@ end
 
 function IT:CreateFrames()
 
-    -- title frame --
-    local titleFrame = CreateFrame('Frame', nil, UIParent)
-    self.titleFrame = titleFrame
-    titleFrame:SetHeight(26)
+    -- summary frame --
+    local summaryFrame = CreateFrame('Frame', nil, UIParent)
+    self.summaryFrame = summaryFrame
     local dbPoint = self.currentPlayerData.framePoint
-    titleFrame:SetPoint(dbPoint.point, UIParent, dbPoint.relativePoint, dbPoint.xOfs, dbPoint.yOfs)
-    titleFrame:SetBackdrop({ bgFile = 'Interface/DialogFrame/UI-DialogBox-Background-Dark' })
+    summaryFrame:SetPoint(dbPoint.point, UIParent, dbPoint.relativePoint, dbPoint.xOfs, dbPoint.yOfs)
+    summaryFrame:SetBackdrop({ bgFile = 'Interface/DialogFrame/UI-DialogBox-Background' })
 
-    -- character choice dropdown --
-    local characterDropdown = CreateFrame('Frame', 'InstanceTrackCharacterDropdown', titleFrame, 'UIDropDownMenuTemplate')
-    characterDropdown:SetPoint('CENTER', 0, -2)
-    UIDropDownMenu_Initialize(characterDropdown, InitCharacterDropdown)
-    UIDropDownMenu_SetText(characterDropdown, self.currentPlayerData.displayedCharacter)
-
-    -- moving settings --
-    titleFrame:SetMovable(true)
-    titleFrame:EnableMouse(true)
-    titleFrame:RegisterForDrag('LeftButton')
-    titleFrame:SetScript('OnDragStart', titleFrame.StartMoving)
-    titleFrame:SetScript('OnDragStop', function()
-        titleFrame:StopMovingOrSizing()
-        local point, _, relativePoint, xOfs, yOfs = titleFrame:GetPoint()
+    summaryFrame:SetMovable(true)
+    summaryFrame:EnableMouse(true)
+    summaryFrame:RegisterForDrag('LeftButton')
+    summaryFrame:SetScript('OnDragStart', summaryFrame.StartMoving)
+    summaryFrame:SetScript('OnDragStop', function()
+        summaryFrame:StopMovingOrSizing()
+        local point, _, relativePoint, xOfs, yOfs = summaryFrame:GetPoint()
         self.currentPlayerData.framePoint = { point = point, relativePoint = relativePoint, xOfs = xOfs, yOfs = yOfs }
     end)
 
-    -- summary frame --
-    local summaryFrame = CreateFrame('Frame', nil, titleFrame)
-    summaryFrame:SetBackdrop({ bgFile = 'Interface/DialogFrame/UI-DialogBox-Background' })
-    summaryFrame:SetPoint('TOP', titleFrame, 'BOTTOM')
-    summaryFrame:SetHeight(3 * self.fontHeight + 4 * self.padding)
+    local characterDropdown = CreateFrame('Frame', 'InstanceTrackCharacterDropdown', summaryFrame, 'UIDropDownMenuTemplate')
+    characterDropdown:SetPoint('TOP', 0, -self.padding)
+    UIDropDownMenu_Initialize(characterDropdown, InitCharacterDropdown)
+    UIDropDownMenu_SetText(characterDropdown, self.currentPlayerData.displayedCharacter)
+
+    summaryFrame:SetHeight(3 * self.fontHeight + 4 * self.padding + characterDropdown:GetHeight())
 
     summaryFrame.titleRow = {}
     local summaryTitleTexts = { 'Period', 'Instances', 'Next reset', 'Details' }
     local xOfs = { self.padding, 0, 0, 0, 0 }
-    local yOfs = { -self.padding, 0, 0, 0 }
+    local yOfs = { -characterDropdown:GetHeight() - self.padding, 0, 0, 0 }
     for i = 2, 4 do
         yOfs[i] = yOfs[i - 1] - (self.fontHeight + self.padding)
     end
@@ -155,7 +148,7 @@ function IT:CreateFrames()
     dayDetailsCheckbox:SetChecked(self.currentPlayerData.dayDetailsShown)
 
     -- details frame --
-    local detailsFrame = CreateFrame('Frame', nil, titleFrame)
+    local detailsFrame = CreateFrame('Frame', nil, summaryFrame)
     self.detailsFrame = detailsFrame
     detailsFrame:SetPoint('TOP', summaryFrame, 'BOTTOM')
     detailsFrame:SetBackdrop({ bgFile = 'Interface/DialogFrame/UI-DialogBox-Background' })
@@ -169,13 +162,11 @@ function IT:CreateFrames()
 
     -- set width --
     local width = xOfs[5]
-    titleFrame:SetWidth(width)
     summaryFrame:SetWidth(width)
     detailsFrame:SetWidth(width)
     UIDropDownMenu_SetWidth(characterDropdown, 3 * width / 4)
 
     -- callbacks --
-
     hourDetailsCheckbox:SetScript('OnClick', function()
         dayDetailsCheckbox:SetChecked(false)
         self.currentPlayerData.hourDetailsShown = hourDetailsCheckbox:GetChecked()
@@ -213,12 +204,12 @@ end
 
 function IT:Display()
     self.currentPlayerData.isDisplayed = true
-    self.titleFrame:Show()
+    self.summaryFrame:Show()
 end
 
 function IT:Hide()
     self.currentPlayerData.isDisplayed = false
-    self.titleFrame:Hide()
+    self.summaryFrame:Hide()
 end
 
 function IT:formatNumber(number)
