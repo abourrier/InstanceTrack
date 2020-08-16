@@ -69,6 +69,14 @@ IT.font = 'Fonts/FRIZQT__.TTF'
 IT.fontHeight = 10
 IT.padding = 6
 
+local function InitCharacterDropdown()
+    local info = UIDropDownMenu_CreateInfo()
+    for key, _ in pairs(IT.db.char) do
+        info.text = key
+        UIDropDownMenu_AddButton(info)
+    end
+end
+
 function IT:CreateFrames()
 
     -- title frame --
@@ -79,13 +87,11 @@ function IT:CreateFrames()
     titleFrame:SetPoint(dbPoint.point, UIParent, dbPoint.relativePoint, dbPoint.xOfs, dbPoint.yOfs)
     titleFrame:SetBackdrop({ bgFile = 'Interface/DialogFrame/UI-DialogBox-Background-Dark' })
 
-    local title = self:CreateFontString(titleFrame)
-    title:SetPoint('LEFT', self.padding, 0)
-    title:SetText('Instances')
-
     -- character choice dropdown --
-    local dropdown = CreateFrame('Frame', 'InstanceTrackCharacterDropdown', titleFrame, 'UIDropDownMenuTemplate')
-    dropdown:SetPoint('RIGHT', 10, -2)
+    local characterDropdown = CreateFrame('Frame', 'InstanceTrackCharacterDropdown', titleFrame, 'UIDropDownMenuTemplate')
+    characterDropdown:SetPoint('CENTER', 0, -2)
+    UIDropDownMenu_Initialize(characterDropdown, InitCharacterDropdown)
+    UIDropDownMenu_SetText(characterDropdown, self.currentPlayerData.displayedCharacter)
 
     -- moving settings --
     titleFrame:SetMovable(true)
@@ -166,7 +172,7 @@ function IT:CreateFrames()
     titleFrame:SetWidth(width)
     summaryFrame:SetWidth(width)
     detailsFrame:SetWidth(width)
-    UIDropDownMenu_SetWidth(dropdown, width / 2)
+    UIDropDownMenu_SetWidth(characterDropdown, 3 * width / 4)
 
     -- callbacks --
 
