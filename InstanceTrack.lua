@@ -69,11 +69,8 @@ IT.font = 'Fonts/FRIZQT__.TTF'
 IT.fontHeight = 10
 IT.padding = 6
 
-local function CharacterDropdownOnClick(self, arg1)
-    IT.currentPlayerData.displayedCharacter = arg1
-    IT.displayedHistory = IT.db.char[IT.currentPlayerData.displayedCharacter].instanceHistory
-    UIDropDownMenu_SetText(IT.characterDropdown, IT.currentPlayerData.displayedCharacter)
-    IT:CreateState()
+local function CharacterDropdownOnClick(_, arg1)
+    IT:changeDisplayedCharacter(arg1)
 end
 
 local function InitCharacterDropdown()
@@ -84,6 +81,26 @@ local function InitCharacterDropdown()
         info.arg1 = key
         UIDropDownMenu_AddButton(info)
     end
+end
+
+StaticPopupDialogs['INSTANCETRACK_CONFIRM_DELETE'] = {
+  text = 'Delete data for this character?',
+  button1 = 'Yes',
+  button2 = 'No',
+  OnAccept = function()
+      IT.db.char[IT.currentPlayerData.displayedCharacter] = nil
+      IT:changeDisplayedCharacter(IT.currentPlayerString)
+  end,
+  timeout = 0,
+  whileDead = true,
+  hideOnEscape = true
+}
+
+function IT:changeDisplayedCharacter(characterString)
+    self.currentPlayerData.displayedCharacter = characterString
+    self.displayedHistory = self.db.char[self.currentPlayerData.displayedCharacter].instanceHistory
+    UIDropDownMenu_SetText(self.characterDropdown, self.currentPlayerData.displayedCharacter)
+    self:CreateState()
 end
 
 function IT:CreateFrames()
@@ -117,7 +134,9 @@ function IT:CreateFrames()
     deleteButton:SetHeight(characterDropdown:GetHeight() / 2)
     deleteButton:SetScript('OnClick', function()
         if self.currentPlayerData.displayedCharacter == self.currentPlayerString then
-            self:Print('You cannot delete data relative to the character you are currently playing.')
+            self:Print('You cannot delete data relative to a character you are currently playing.')
+        else
+            StaticPopup_Show('INSTANCETRACK_CONFIRM_DELETE')
         end
     end)
 
