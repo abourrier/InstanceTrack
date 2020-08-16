@@ -69,10 +69,19 @@ IT.font = 'Fonts/FRIZQT__.TTF'
 IT.fontHeight = 10
 IT.padding = 6
 
+local function CharacterDropdownOnClick(self, arg1)
+    IT.currentPlayerData.displayedCharacter = arg1
+    IT.displayedHistory = IT.db.char[IT.currentPlayerData.displayedCharacter].instanceHistory
+    UIDropDownMenu_SetText(IT.characterDropdown, IT.currentPlayerData.displayedCharacter)
+    IT:CreateState()
+end
+
 local function InitCharacterDropdown()
     local info = UIDropDownMenu_CreateInfo()
+    info.func = CharacterDropdownOnClick
     for key, _ in pairs(IT.db.char) do
         info.text = key
+        info.arg1 = key
         UIDropDownMenu_AddButton(info)
     end
 end
@@ -97,6 +106,7 @@ function IT:CreateFrames()
     end)
 
     local characterDropdown = CreateFrame('Frame', 'InstanceTrackCharacterDropdown', summaryFrame, 'UIDropDownMenuTemplate')
+    self.characterDropdown = characterDropdown
     characterDropdown:SetPoint('TOP', 0, -self.padding)
     UIDropDownMenu_Initialize(characterDropdown, InitCharacterDropdown)
     UIDropDownMenu_SetText(characterDropdown, self.currentPlayerData.displayedCharacter)
