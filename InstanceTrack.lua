@@ -74,14 +74,18 @@ function IT:CreateFrames()
     -- title frame --
     local titleFrame = CreateFrame('Frame', nil, UIParent)
     self.titleFrame = titleFrame
-    titleFrame:SetHeight(2 * self.padding + self.fontHeight)
+    titleFrame:SetHeight(26)
     local dbPoint = self.currentPlayerData.framePoint
     titleFrame:SetPoint(dbPoint.point, UIParent, dbPoint.relativePoint, dbPoint.xOfs, dbPoint.yOfs)
     titleFrame:SetBackdrop({ bgFile = 'Interface/DialogFrame/UI-DialogBox-Background-Dark' })
 
     local title = self:CreateFontString(titleFrame)
-    title:SetPoint('TOPLEFT', titleFrame, 'TOPLEFT', self.padding, -self.padding)
-    title:SetText('InstanceTrack')
+    title:SetPoint('LEFT', self.padding, 0)
+    title:SetText('Instances')
+
+    -- character choice dropdown --
+    local dropdown = CreateFrame('Frame', 'InstanceTrackCharacterDropdown', titleFrame, 'UIDropDownMenuTemplate')
+    dropdown:SetPoint('RIGHT', 10, -2)
 
     -- moving settings --
     titleFrame:SetMovable(true)
@@ -162,6 +166,7 @@ function IT:CreateFrames()
     titleFrame:SetWidth(width)
     summaryFrame:SetWidth(width)
     detailsFrame:SetWidth(width)
+    UIDropDownMenu_SetWidth(dropdown, width / 2)
 
     -- callbacks --
 
