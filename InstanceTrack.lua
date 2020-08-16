@@ -124,12 +124,12 @@ function IT:CreateFrames()
 
     local characterDropdown = CreateFrame('Frame', 'InstanceTrackCharacterDropdown', summaryFrame, 'UIDropDownMenuTemplate')
     self.characterDropdown = characterDropdown
-    characterDropdown:SetPoint('TOPLEFT', -10, -self.padding)
+    characterDropdown:SetPoint('TOPRIGHT', 10, -self.padding)
     UIDropDownMenu_Initialize(characterDropdown, InitCharacterDropdown)
     UIDropDownMenu_SetText(characterDropdown, self.currentPlayerData.displayedCharacter)
 
     local deleteButton = CreateFrame('Button', nil, summaryFrame, 'UIPanelButtonTemplate')
-    deleteButton:SetPoint('LEFT', characterDropdown, 'RIGHT', -15, 2)
+    deleteButton:SetPoint('RIGHT', characterDropdown, 'LEFT', 15, 2)
     deleteButton:SetText('x')
     deleteButton:SetHeight(characterDropdown:GetHeight() / 2)
     deleteButton:SetScript('OnClick', function()
