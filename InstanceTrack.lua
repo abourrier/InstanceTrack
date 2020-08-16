@@ -107,9 +107,14 @@ function IT:CreateFrames()
 
     local characterDropdown = CreateFrame('Frame', 'InstanceTrackCharacterDropdown', summaryFrame, 'UIDropDownMenuTemplate')
     self.characterDropdown = characterDropdown
-    characterDropdown:SetPoint('TOP', 0, -self.padding)
+    characterDropdown:SetPoint('TOPLEFT', -10, -self.padding)
     UIDropDownMenu_Initialize(characterDropdown, InitCharacterDropdown)
     UIDropDownMenu_SetText(characterDropdown, self.currentPlayerData.displayedCharacter)
+
+    local deleteButton = CreateFrame('Button', nil, summaryFrame, 'UIPanelButtonTemplate')
+    deleteButton:SetPoint('LEFT', characterDropdown, 'RIGHT', -15, 2)
+    deleteButton:SetText('x')
+    deleteButton:SetHeight(characterDropdown:GetHeight() / 2)
 
     summaryFrame:SetHeight(3 * self.fontHeight + 4 * self.padding + characterDropdown:GetHeight())
 
@@ -173,7 +178,9 @@ function IT:CreateFrames()
     local width = xOfs[5]
     summaryFrame:SetWidth(width)
     detailsFrame:SetWidth(width)
-    UIDropDownMenu_SetWidth(characterDropdown, 3 * width / 4)
+    local widthButtonsFirstLine = width - 3 * self.padding
+    UIDropDownMenu_SetWidth(characterDropdown, 4 * widthButtonsFirstLine / 5)
+    deleteButton:SetWidth(widthButtonsFirstLine / 8)
 
     -- callbacks --
     hourDetailsCheckbox:SetScript('OnClick', function()
