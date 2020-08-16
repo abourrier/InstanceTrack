@@ -158,7 +158,6 @@ function IT:CreateFrames()
         detailsFrame:Hide()
     end
     detailsFrame.rows = {}
-    detailsFrame:SetHeight(200)
 
     -- set width --
     local width = xOfs[5]
